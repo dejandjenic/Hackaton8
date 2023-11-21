@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using API.Configuration;
+using API.Repositories;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,8 @@ var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSetting
 builder.Services.AddSingleton(appSettings);
 
 builder.Services.AddSingleton<IGPTService,GPTService>();
+builder.Services.AddSingleton<IChatRepository,ChatRepository>();
+builder.Services.AddSingleton<IChatService,ChatService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAdB2C"));
