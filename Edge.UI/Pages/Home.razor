@@ -1,0 +1,45 @@
+﻿@page "/"
+@using Edge.UI.Services
+@inject ChatService chatService;
+
+<PageTitle>Home</PageTitle>
+
+<ul id="messages">
+    @foreach (var message in Messages)
+    {
+        <li class="@(message.FromUser?"user":"system")">
+            @message.Text
+        </li>
+    }
+</ul>
+
+<textarea @bind="Text" rows="10" cols="50"></textarea>
+
+<br />
+
+<button @onclick="SendMessage">send</button>
+
+@code{
+
+    public string Text { get; set; }
+    public List<ChatMessage> Messages { get; set; } = new();
+    
+    protected async override Task OnInitializedAsync()
+    {
+        await chatService.Init();
+        await chatService.RegisterGptHandler((message) =>
+        {
+            Messages.Add(new ChatMessage(false,message));
+            StateHasChanged();
+        });
+    }
+    
+    private async Task SendMessage()
+    {
+        Messages.Add(new ChatMessage(true,Text));
+        await chatService.SendMessage(Text);
+        Text = "";
+    }
+    
+    
+}
