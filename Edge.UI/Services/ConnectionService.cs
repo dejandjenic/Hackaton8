@@ -11,6 +11,11 @@ public class ConnectionService(BackendApiClient apiClient)
     {
         await connection.InvokeAsync(method, arg1, arg2);
     }
+    
+    public async Task Send(string method,object? arg1)
+    {
+        await connection.InvokeAsync(method, arg1);
+    }
 
     public void Bind<T>(string name, Action<T> handler)
     {
@@ -27,7 +32,7 @@ public class ConnectionService(BackendApiClient apiClient)
         var response = await apiClient.Login();
 
         connection = new HubConnectionBuilder()
-            .WithUrl(response.Url, x => { x.AccessTokenProvider = async () => response.AccessToken; })
+            .WithUrl(response.Url + "&username=dejan", x => { x.AccessTokenProvider = async () => response.AccessToken; })
             .WithAutomaticReconnect()
             .Build();
 

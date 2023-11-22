@@ -5,6 +5,7 @@ using API.Configuration;
 using API.Repositories;
 using Azure;
 using Azure.AI.OpenAI;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using Microsoft.SemanticKernel.Memory;
@@ -15,12 +16,12 @@ namespace API.Services;
 
 public interface IGPTService
 {
-    Task<string> Respond(string userId, string message);
+    Task Respond(string userId, string message);
 }
 
-public class GPTService(IChatService chatService, AppSettings appSettings) : IGPTService
+public class GPTService(IChatService chatService, AppSettings appSettings, IHubContext<ChatHub,IChatHub> hubContext) : IGPTService
 {
-    public async Task<string> Respond(string userId, string message)
+    public async Task Respond(string userId, string message)
     {
         string aoaiEndpoint = appSettings.OpenAIEndpoint;
         string aoaiApiKey = appSettings.OpenAIKey;
@@ -105,6 +106,6 @@ public class GPTService(IChatService chatService, AppSettings appSettings) : IGP
         var answer = builder.ToString();
         await chatService.SaveNewChatItem(userId, answer,false);
         chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Assistant, answer));
-        return answer;
+        await hubContext.Clients.Group(userId).Respond(answer);
     }
 }

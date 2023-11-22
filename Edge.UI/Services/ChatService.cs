@@ -9,11 +9,11 @@ public class ChatService(ConnectionService connectionService)
 
     public async Task RegisterGptHandler(Action<string> handler)
     {
-        connectionService.Bind("gpt", handler);
+        connectionService.Bind("Respond", handler);
     }
 
     public async Task SendMessage(string message)
     {
-        await connectionService.Send("Message", "user", message);
+        await connectionService.Send("Message", message);
     }
 }

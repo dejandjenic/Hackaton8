@@ -1,15 +1,21 @@
 using System.Security.Claims;
 using API.Configuration;
+using API.Hubs;
 using API.Repositories;
 using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.SignalR.Management;
 using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
 builder.Services.AddSingleton(appSettings);
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 
 builder.Services.AddSingleton<IGPTService,GPTService>();
 builder.Services.AddSingleton<IChatRepository,ChatRepository>();
@@ -33,10 +39,11 @@ builder.Services.AddSignalR().AddAzureSignalR(options =>
     //  https://docs.microsoft.com/en-us/aspnet/core/signalr/authn-and-authz
     options.ClaimsProvider = context => new Claim[]
     {
-        //new Claim(ClaimTypes.NameIdentifier, context.Request.Query["username"])
+        //new Claim(ClaimTypes.NameIdentifier, context.User?.Identity.IsAuthenticated.ToString())
+        new Claim(ClaimTypes.NameIdentifier, context.Request.Query["username"])
     };
 });
-
+builder.Services.AddHttpContextAccessor();
 builder.Services
     .AddSingleton<SignalRService>()
     .AddHostedService(sp => sp.GetService<SignalRService>())
@@ -51,16 +58,49 @@ var app = builder.Build();
 
 app.UseCors();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 
-app.MapGet("/login", async ([FromServices]IHubContextStore store) => await store.ChatHubContext.NegotiateAsync());
+app.MapGet("/login", async ([FromServices]IHubContextStore store,HttpRequest request,HttpResponse response) =>
+{
+    var cookie = request.Cookies["id"];
+    if (cookie == null)
+    {
+        cookie = Guid.NewGuid().ToString();
+        response.Cookies.Append("id",cookie,new CookieOptions()
+        {
+            Expires = DateTimeOffset.UtcNow.AddYears(10),
+            Path = "/",
+            Secure = false, // Use "false" if not using HTTPS
+            HttpOnly = true,
+        });
+    }
+    return await store.ChatHubContext.NegotiateAsync(new NegotiationOptions()
+    {
+        Claims = new List<Claim>()
+        {
+            new Claim(ClaimTypes.NameIdentifier, cookie)
+        }
+    });
+});
+app.MapGet("/login-admin", async ([FromServices]IHubContextStore store) => await store.AdminHubContext.NegotiateAsync()).RequireAuthorization();
 app.MapGet("/test" ,()=> Guid.NewGuid()).RequireAuthorization();
 
 app.UseAzureSignalR(routes =>
 {
-    routes.MapHub<Chat>("/chat");
+    routes.MapHub<ChatHub>("/chat");
+});
+
+app.UseAzureSignalR(routes =>
+{
+    routes.MapHub<AdminHub>("/admin");
 });
 
 app.Run();
