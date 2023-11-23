@@ -36,9 +36,10 @@
     
     private async Task SendMessage()
     {
+        var text = Text;
         Text = "";
-        Messages.Add(new ChatMessage(true,Text));
-        await chatService.SendMessage(Text);
+        Messages.Add(new ChatMessage(true,text));
+        await chatService.SendMessage(text);
     }
     
     

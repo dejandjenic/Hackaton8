@@ -6,20 +6,27 @@
 @attribute [Authorize]
 @inject ChatService chatService;
 
-<PageTitle>Weather</PageTitle>
+<PageTitle>Chat</PageTitle>
 
-<Tabs OnRemove="@OnRemove">
-	<TabPage Text="Active chats">
-		<ActiveChats OnSelect="OnSelect" Chats="Chats"></ActiveChats>
-	</TabPage>
-	@foreach (var chat in Ids.Keys)
-	{
-		<TabPage Text=@chat Id="@chat">
-			<ChatDetail Id=@chat data="@Ids[chat].Item2"></ChatDetail>
+@if (!string.IsNullOrWhiteSpace(status))
+{
+	<div>@status</div>
+}
+else
+{
+	<Tabs OnRemove="@OnRemove">
+		<TabPage Text="Active chats">
+			<ActiveChats OnSelect="OnSelect" Chats="Chats"></ActiveChats>
 		</TabPage>
-	}
-      	
-</Tabs>
+		@foreach (var chat in Ids.Keys)
+		{
+			<TabPage Text=@chat Id="@chat">
+				<ChatDetail Id=@chat data="@Ids[chat].Item2"></ChatDetail>
+			</TabPage>
+		}
+
+	</Tabs>
+}
 
 @code {
     
@@ -57,10 +64,14 @@
 	}
 	
 	private List<ChatUserEvent> Chats=new();
+	string status = "";
 
 	protected async override Task OnInitializedAsync()
 	{
+		status = "Connecting to messenger ...";
+		
 		await chatService.Init();
+		status = "registering events ...";
 		await chatService.RegisterNewChatEventHandler((user) =>
 		{
 			Console.WriteLine(user);
@@ -71,6 +82,7 @@
 				StateHasChanged();
 			}
 		});
+		status = "";
 	}
 
 }
