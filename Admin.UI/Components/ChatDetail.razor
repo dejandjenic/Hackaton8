@@ -1,0 +1,55 @@
+@using Admin.UI.Services
+@using Shared
+@using Admin.UI.ApiClients
+@inject BackendApiClient client;
+
+<span>@Id</span>
+<button @onclick="() => OnRemoveLocal()">x</button>
+
+<ul id="messages">
+@foreach (var it in data)
+{
+    <li class="@(it.FromUser?"user":"system")">
+        @it.Message
+    </li>
+}
+</ul>
+
+@code {
+
+    List<ChatUserEventMessage> data = new ();
+    
+    [Parameter]
+    public ChatService Service { get; set; }
+    
+    [Parameter]
+    public Action<string> OnRemove { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    IDisposable handler;
+
+    private void OnRemoveLocal()
+    {
+        handler.Dispose();
+        OnRemove(Id);
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        Console.WriteLine("chat initialized");
+        data = await client.GetHistory();
+        handler = await Service.RegisterChatEventHandler((o) =>
+        {
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(o));
+            if (o.UserId == Id)
+            {
+                data.Add(o);
+                StateHasChanged();
+            }
+        });
+
+    }
+    
+}

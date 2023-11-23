@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using API.Configuration;
+using API.Hubs;
 using API.Repositories;
 using Azure;
 using Azure.AI.OpenAI;
@@ -11,6 +12,7 @@ using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using Microsoft.SemanticKernel.Memory;
 using Microsoft.SemanticKernel.Plugins.Memory;
 using Microsoft.SemanticKernel.Text;
+using Shared;
 
 namespace API.Services;
 
@@ -19,10 +21,17 @@ public interface IGPTService
     Task Respond(string userId, string message);
 }
 
-public class GPTService(IChatService chatService, AppSettings appSettings, IHubContext<ChatHub,IChatHub> hubContext) : IGPTService
+public class GPTService(IChatService chatService, AppSettings appSettings, IHubContext<ChatHub,IChatHub> hubContext,IHubContext<AdminHub,IAdminHub> adminHubManager) : IGPTService
 {
     public async Task Respond(string userId, string message)
     {
+        await adminHubManager.Clients.Group(userId).ChatEvent(new ChatUserEventMessage
+        {
+            Message = message,
+            FromUser = true,
+            UserId = userId
+        });
+        
         string aoaiEndpoint = appSettings.OpenAIEndpoint;
         string aoaiApiKey = appSettings.OpenAIKey;
         string acsEndpoint = appSettings.SearchEndpoint;
@@ -107,5 +116,15 @@ public class GPTService(IChatService chatService, AppSettings appSettings, IHubC
         await chatService.SaveNewChatItem(userId, answer,false);
         chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Assistant, answer));
         await hubContext.Clients.Group(userId).Respond(answer);
+        await adminHubManager.Clients.All.NewChatEvent(new ChatUserEvent
+        {
+           UserId = userId
+        });
+        await adminHubManager.Clients.Group(userId).ChatEvent(new ChatUserEventMessage
+        {
+            Message = answer,
+            FromUser = false,
+            UserId = userId
+        });
     }
 }

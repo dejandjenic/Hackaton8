@@ -1,0 +1,48 @@
+@using Admin.UI.Services
+
+<div>
+      <button @onclick="() => activeChatId=string.Empty">Active chats</button>
+      @foreach (var chat in Ids)
+      {
+            <button @onclick="() => activeChatId=chat">@chat</button>
+      }
+</div>
+
+<div style="display:@(activeChatId == ""?"":"none")">
+      <ActiveChats Service=Service OnSelect="OnSelect"></ActiveChats>
+</div>
+
+
+@foreach (var chat in Ids)
+{
+      <div style="display:@(activeChatId == chat?"":"none")">
+            <ChatDetail Service=Service OnRemove="OnRemove" Id="@chat"></ChatDetail>
+      </div>
+}
+
+@code {
+
+      private string activeChatId = "";
+      
+      [Parameter]
+      public ChatService Service { get; set; }
+      
+      public List<string> Ids { get; set; } = new();
+
+      void OnSelect(string id)
+      {
+            if (!Ids.Contains(id))
+            {
+                  Ids.Add(id);
+                  Service.Watch(id);
+                  StateHasChanged();
+            }
+      }
+
+      void OnRemove(string id)
+      {
+            Ids.Remove(id);
+            StateHasChanged();
+      }
+
+}

@@ -34,4 +34,8 @@
         <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.16.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Shared\Shared.csproj" />
+    </ItemGroup>
+
 </Project>

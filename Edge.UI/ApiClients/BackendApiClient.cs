@@ -2,18 +2,11 @@ using System.Net.Http.Json;
 
 namespace Edge.UI.ApiClients;
 
-public class BackendApiClient
+public class BackendApiClient(HttpClient httpClient)
 {
-    private readonly HttpClient _httpClient;
-
-    public BackendApiClient(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
-
     public async Task<LoginResponse> Login()
     {
-        return await _httpClient.GetFromJsonAsync<LoginResponse>("/login");
+        return await httpClient.GetFromJsonAsync<LoginResponse>("/login");
     }
 }
 

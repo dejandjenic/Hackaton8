@@ -1,0 +1,17 @@
+﻿@page "/chat"
+@using Microsoft.AspNetCore.Authorization
+@using Admin.UI.Services
+@using Shared
+@inject HttpClient Http
+@attribute [Authorize]
+@inject ChatService chatService;
+
+<PageTitle>Weather</PageTitle>
+
+<Tabs @ref="tabs" Service="chatService"></Tabs>
+
+@code {
+    
+    Admin.UI.Components.Tabs tabs;
+
+}

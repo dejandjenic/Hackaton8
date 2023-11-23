@@ -1,0 +1,67 @@
+@using Admin.UI.Services
+@using Shared
+
+@if (chats == null)
+{
+    <p>
+        <em>No data</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>User</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var chat in chats)
+        {
+            <tr>
+                <td><button @onclick="() => ChatSelected(chat.UserId)">@chat.UserId</button></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    [Parameter]
+    public ChatService Service { get; set; }
+    
+    private List<ChatUserEvent> chats=new();
+
+    [Parameter]
+    public Action<string> OnSelect { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        Console.WriteLine("chat active  initialized");
+        
+        await Service.Init();
+        await Service.RegisterNewChatEventHandler((user) =>
+        {
+            Console.WriteLine(user);
+            if (!chats.Select(x => x.UserId).ToList().Contains(user.UserId))
+            {
+                chats.Add(user);
+                StateHasChanged();
+            }
+        });
+
+
+        
+    }
+    
+    
+    private async Task ChatSelected(string id)
+    {
+        OnSelect(id);
+        //tabs.Ids.Add(id);
+        Console.WriteLine("chat selected");
+    }
+
+
+}

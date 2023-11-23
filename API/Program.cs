@@ -20,6 +20,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IGPTService,GPTService>();
 builder.Services.AddSingleton<IChatRepository,ChatRepository>();
 builder.Services.AddSingleton<IChatService,ChatService>();
+builder.Services.AddSingleton<AdminHubManager>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAdB2C"));
