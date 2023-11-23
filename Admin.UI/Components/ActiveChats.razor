@@ -1,7 +1,7 @@
 @using Admin.UI.Services
 @using Shared
 
-@if (chats == null)
+@if (Chats == null)
 {
     <p>
         <em>No data</em>
@@ -16,10 +16,10 @@ else
         </tr>
         </thead>
         <tbody>
-        @foreach (var chat in chats)
+        @foreach (var chat in Chats)
         {
             <tr>
-                <td><button @onclick="() => ChatSelected(chat.UserId)">@chat.UserId</button></td>
+                <td><div @onclick="() => ChatSelected(chat.UserId)">@chat.UserId</div></td>
             </tr>
         }
         </tbody>
@@ -28,37 +28,16 @@ else
 
 
 @code {
-    [Parameter]
-    public ChatService Service { get; set; }
-    
-    private List<ChatUserEvent> chats=new();
 
     [Parameter]
-    public Action<string> OnSelect { get; set; }
+    public List<ChatUserEvent> Chats { get; set; } = new();
 
-    protected async override Task OnInitializedAsync()
-    {
-        Console.WriteLine("chat active  initialized");
-        
-        await Service.Init();
-        await Service.RegisterNewChatEventHandler((user) =>
-        {
-            Console.WriteLine(user);
-            if (!chats.Select(x => x.UserId).ToList().Contains(user.UserId))
-            {
-                chats.Add(user);
-                StateHasChanged();
-            }
-        });
-
-
-        
-    }
-    
+    [Parameter]
+    public Func<string,Task> OnSelect { get; set; }
     
     private async Task ChatSelected(string id)
     {
-        OnSelect(id);
+        await OnSelect(id);
         //tabs.Ids.Add(id);
         Console.WriteLine("chat selected");
     }

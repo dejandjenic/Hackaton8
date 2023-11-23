@@ -1,48 +1,56 @@
 @using Admin.UI.Services
 
-<div>
-      <button @onclick="() => activeChatId=string.Empty">Active chats</button>
-      @foreach (var chat in Ids)
-      {
-            <button @onclick="() => activeChatId=chat">@chat</button>
-      }
-</div>
-
-<div style="display:@(activeChatId == ""?"":"none")">
-      <ActiveChats Service=Service OnSelect="OnSelect"></ActiveChats>
-</div>
-
-
-@foreach (var chat in Ids)
-{
-      <div style="display:@(activeChatId == chat?"":"none")">
-            <ChatDetail Service=Service OnRemove="OnRemove" Id="@chat"></ChatDetail>
-      </div>
-}
+<CascadingValue Value="this">
+    <div class="btn-group" role="group">
+        @foreach (TabPage tabPage in Pages)
+        {
+            <span
+                class="btn @GetButtonClass(tabPage)"
+                @onclick=@(() => ActivatePage(tabPage))>
+                @tabPage.Text
+                @if (Pages.IndexOf(tabPage) > 0)
+                {
+                    <button @onclick="async () => await OnRemoveLocal(tabPage.Id)">x</button>
+                }
+            </span>
+        }
+    </div>
+    @ChildContent
+</CascadingValue>
 
 @code {
 
-      private string activeChatId = "";
-      
-      [Parameter]
-      public ChatService Service { get; set; }
-      
-      public List<string> Ids { get; set; } = new();
+    private async Task OnRemoveLocal(string id)
+    {
+        await OnRemove(id);
+        Pages.Remove(Pages.FirstOrDefault(x => x.Id == id));
+    }
 
-      void OnSelect(string id)
-      {
-            if (!Ids.Contains(id))
-            {
-                  Ids.Add(id);
-                  Service.Watch(id);
-                  StateHasChanged();
-            }
-      }
+    [Parameter]
+    public Func<string, Task> OnRemove { get; set; }
 
-      void OnRemove(string id)
-      {
-            Ids.Remove(id);
-            StateHasChanged();
-      }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public TabPage ActivePage { get; set; }
+    List<TabPage> Pages = new();
+
+    internal void AddPage(TabPage tabPage)
+    {
+        Pages.Add(tabPage);
+        if (Pages.Count == 1)
+            ActivePage = tabPage;
+        StateHasChanged();
+    }
+
+    string GetButtonClass(TabPage page)
+    {
+        return page == ActivePage ? "btn-primary" : "btn-secondary";
+    }
+
+    void ActivatePage(TabPage page)
+    {
+        ActivePage = page;
+    }
 
 }

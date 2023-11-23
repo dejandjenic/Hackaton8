@@ -8,10 +8,69 @@
 
 <PageTitle>Weather</PageTitle>
 
-<Tabs @ref="tabs" Service="chatService"></Tabs>
+<Tabs OnRemove="@OnRemove">
+	<TabPage Text="Active chats">
+		<ActiveChats OnSelect="OnSelect" Chats="Chats"></ActiveChats>
+	</TabPage>
+	@foreach (var chat in Ids.Keys)
+	{
+		<TabPage Text=@chat Id="@chat">
+			<ChatDetail Id=@chat data="@Ids[chat].Item2"></ChatDetail>
+		</TabPage>
+	}
+      	
+</Tabs>
 
 @code {
     
-    Admin.UI.Components.Tabs tabs;
+	public Dictionary<string,(IDisposable,List<ChatUserEventMessage>)> Ids { get; set; } = new();
+
+	async Task OnRemove(string id)
+	{
+		var handler = Ids[id].Item1;
+		handler.Dispose();
+		Ids.Remove(id);
+		StateHasChanged();
+	}
+
+	async Task OnSelect(string id)
+	{
+		if (!Ids.ContainsKey(id))
+		{
+			
+			chatService.Watch(id);
+			
+			var handler = await chatService.RegisterChatEventHandler((user) =>
+			{
+				Console.WriteLine(user);
+				if(id == user.UserId)
+				{
+					Ids[id].Item2.Add(user);
+					StateHasChanged();
+				}
+			});
+			
+			Ids.Add(id,(handler,new List<ChatUserEventMessage>()));
+			
+			StateHasChanged();
+		}
+	}
+	
+	private List<ChatUserEvent> Chats=new();
+
+	protected async override Task OnInitializedAsync()
+	{
+		await chatService.Init();
+		await chatService.RegisterNewChatEventHandler((user) =>
+		{
+			Console.WriteLine(user);
+			
+			if (!Chats.Select(x => x.UserId).ToList().Contains(user.UserId))
+			{
+				Chats.Add(user);
+				StateHasChanged();
+			}
+		});
+	}
 
 }

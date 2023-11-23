@@ -40,6 +40,8 @@ public class GPTService(IChatService chatService, AppSettings appSettings, IHubC
         string collectionName = appSettings.SearchCollectionName;
 
         var aoai = new OpenAIClient(new Uri(aoaiEndpoint), new AzureKeyCredential(aoaiApiKey));
+        var useRealChat = true;
+        
         // ISemanticTextMemory memory = new MemoryBuilder()
         //     .WithLoggerFactory(LoggerFactory.Create(builder => builder.AddConsole()))
         //     .WithMemoryStore(new AzureCognitiveSearchMemoryStore(acsEndpoint, acsApiKey))
@@ -69,52 +71,63 @@ public class GPTService(IChatService chatService, AppSettings appSettings, IHubC
         // }
 
         var history = await chatService.GetHistory(userId);
-
+        var answer = "";
 
         StringBuilder builder = new();
-        var chatCompletionsOptions = new ChatCompletionsOptions();
-        chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System,
-            "You are an AI assistant that helps people find information."));
-        foreach (var item in history)
+        if (useRealChat)
         {
-            chatCompletionsOptions.Messages.Add(new ChatMessage(
-                item.FromUser ? ChatRole.User : ChatRole.Assistant,
-                item.Text));
-        }
 
-        chatCompletionsOptions.AzureExtensionsOptions = new AzureChatExtensionsOptions
-        {
-            Extensions =
+            var chatCompletionsOptions = new ChatCompletionsOptions();
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System,
+                "You are an AI assistant that helps people find information."));
+            foreach (var item in history)
             {
-                new AzureCognitiveSearchChatExtensionConfiguration
+                chatCompletionsOptions.Messages.Add(new ChatMessage(
+                    item.FromUser ? ChatRole.User : ChatRole.Assistant,
+                    item.Text));
+            }
+
+            chatCompletionsOptions.AzureExtensionsOptions = new AzureChatExtensionsOptions
+            {
+                Extensions =
                 {
-                    SearchEndpoint = new Uri(acsEndpoint),
-                    SearchKey = new AzureKeyCredential(acsApiKey),
-                    IndexName = collectionName,
-                    ShouldRestrictResultScope = false,
+                    new AzureCognitiveSearchChatExtensionConfiguration
+                    {
+                        SearchEndpoint = new Uri(acsEndpoint),
+                        SearchKey = new AzureKeyCredential(acsApiKey),
+                        IndexName = collectionName,
+                        ShouldRestrictResultScope = false,
+                    }
+                }
+            };
+
+            var question = $"Question: {message}"; //?
+
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.User, question));
+            await chatService.SaveNewChatItem(userId, question, true);
+
+            builder.Clear();
+            var response = await aoai.GetChatCompletionsStreamingAsync(aoaiModel, chatCompletionsOptions);
+
+            await foreach (StreamingChatChoice choice in response.Value.GetChoicesStreaming())
+            {
+                await foreach (ChatMessage item in choice.GetMessageStreaming())
+                {
+                    builder.Append(item.Content);
                 }
             }
-        };
 
-        var question = $"Question: {message}";//?
-
-        chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.User, question));
-        await chatService.SaveNewChatItem(userId, question,true);
-
-        builder.Clear();
-        var response = await aoai.GetChatCompletionsStreamingAsync(aoaiModel, chatCompletionsOptions);
-
-        await foreach (StreamingChatChoice choice in response.Value.GetChoicesStreaming())
+            answer = builder.ToString();
+            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Assistant, answer));
+        }
+        else
         {
-            await foreach (ChatMessage item in choice.GetMessageStreaming())
-            {
-                builder.Append(item.Content);
-            }
+            answer = "no gpt";
         }
 
-        var answer = builder.ToString();
+        
         await chatService.SaveNewChatItem(userId, answer,false);
-        chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Assistant, answer));
+        
         await hubContext.Clients.Group(userId).Respond(answer);
         await adminHubManager.Clients.All.NewChatEvent(new ChatUserEvent
         {

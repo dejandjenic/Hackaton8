@@ -3,9 +3,6 @@
 @using Admin.UI.ApiClients
 @inject BackendApiClient client;
 
-<span>@Id</span>
-<button @onclick="() => OnRemoveLocal()">x</button>
-
 <ul id="messages">
 @foreach (var it in data)
 {
@@ -17,39 +14,10 @@
 
 @code {
 
-    List<ChatUserEventMessage> data = new ();
-    
     [Parameter]
-    public ChatService Service { get; set; }
-    
-    [Parameter]
-    public Action<string> OnRemove { get; set; }
+    public List<ChatUserEventMessage> data { get; set; } = new();
 
     [Parameter]
     public string Id { get; set; }
 
-    IDisposable handler;
-
-    private void OnRemoveLocal()
-    {
-        handler.Dispose();
-        OnRemove(Id);
-    }
-
-    protected async override Task OnInitializedAsync()
-    {
-        Console.WriteLine("chat initialized");
-        data = await client.GetHistory();
-        handler = await Service.RegisterChatEventHandler((o) =>
-        {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(o));
-            if (o.UserId == Id)
-            {
-                data.Add(o);
-                StateHasChanged();
-            }
-        });
-
-    }
-    
 }
