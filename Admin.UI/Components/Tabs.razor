@@ -10,7 +10,7 @@
                 @tabPage.Text
                 @if (Pages.IndexOf(tabPage) > 0)
                 {
-                    <button @onclick="async () => await OnRemoveLocal(tabPage.Id)">x</button>
+                    <img src="close2.png" class="close" @onclick="async () => await OnRemoveLocal(tabPage.Id)" />
                 }
             </span>
         }

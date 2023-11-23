@@ -36,9 +36,9 @@
     
     private async Task SendMessage()
     {
+        Text = "";
         Messages.Add(new ChatMessage(true,Text));
         await chatService.SendMessage(Text);
-        Text = "";
     }
     
     

@@ -125,3 +125,8 @@ code {
     border-radius: 10px;
     padding: 10px;
 }
+
+.close{
+    width: 20px;
+    margin-left: 20px;
+}
