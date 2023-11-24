@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Admin.UI;
 using Admin.UI.ApiClients;
 using Admin.UI.Services;
+using Blazored.Toast;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -13,6 +14,9 @@ var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSetting
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddSingleton(appSettings);
 builder.Services.AddScoped<AuthorizationMessageHandler>();
+
+builder.Services.AddBlazoredToast();
+builder.Services.AddScoped<SettingsService>();
 
 builder.Services.AddSingleton<ConnectionService>();
 builder.Services.AddSingleton<ChatService>();

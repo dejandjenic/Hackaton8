@@ -1,11 +1,39 @@
 ﻿@page "/settings"
 @using Admin.UI.ApiClients
+@using Admin.UI.Services
 @inject BackendApiClient api
+@inject IToastService toastService
+@inject SettingsService settingsService
 
 <PageTitle>Counter</PageTitle>
 
 <h1>Settings</h1>
 
+<Tabs AllowTabPageRemoval="false">
+    <TabPage Text="Bot settings">
+        <p>this settings are you when initializing bot and describing its use within the system.</p>
+        <textarea rows="20" style="width:100%" @bind="botSettings"/>
+        <br/>
+        <button class="btn-primary" @onclick="SaveBotSettings">Save</button>
+    </TabPage>
+    <TabPage Text="Knowledge base">
+
+    </TabPage>
+
+</Tabs>
 
 @code {
+    private string botSettings;
+
+    protected async override Task OnInitializedAsync()
+    {
+        botSettings = await settingsService.GetBotSettings();
+    }
+
+    private async Task SaveBotSettings()
+    {
+        Console.WriteLine($"saving settings {botSettings}");
+        await settingsService.SaveBotSettings(botSettings);
+        toastService.ShowSuccess("settings saved");
+    }
 }
