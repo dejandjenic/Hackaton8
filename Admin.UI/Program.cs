@@ -17,6 +17,7 @@ builder.Services.AddScoped<AuthorizationMessageHandler>();
 
 builder.Services.AddBlazoredToast();
 builder.Services.AddScoped<SettingsService>();
+builder.Services.AddScoped<KnowledgeBaseSettingsService>();
 
 builder.Services.AddSingleton<ConnectionService>();
 builder.Services.AddSingleton<ChatService>();

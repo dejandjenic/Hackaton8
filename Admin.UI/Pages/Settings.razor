@@ -1,9 +1,12 @@
 ﻿@page "/settings"
 @using Admin.UI.ApiClients
 @using Admin.UI.Services
+@using Shared
+@using System.Net.Mime
 @inject BackendApiClient api
 @inject IToastService toastService
 @inject SettingsService settingsService
+@inject KnowledgeBaseSettingsService KnowledgeBaseSettingsService
 
 <PageTitle>Counter</PageTitle>
 
@@ -17,17 +20,63 @@
         <button class="btn-primary" @onclick="SaveBotSettings">Save</button>
     </TabPage>
     <TabPage Text="Knowledge base">
-
+        <div class="row">
+            <div class="col-4">
+                <a href="javascript:void(0)" @onclick="() => { editPage = false;modal.Open(); }">add</a>
+                <ul class="pages">
+                    @foreach (var p in pages)
+                    {
+                        <li><span @onclick="async ()=> await SelectPage(p.Id)">@p.Name</span> <a @onclick="() => {newPageText=p.Name; selectedPageId=p.Id; editPage=true;modal.Open(); }">edit</a></li>
+                    }
+                </ul>
+            </div>
+            <div class="col-8">
+                @* @foreach (var line in lines) *@
+                @* { *@
+                @*     <input class="line" value="@line"/> *@
+                @* } *@
+                @* @if (!lines.Any() && !string.IsNullOrWhiteSpace(selectedPageId)) *@
+                @* { *@
+                @*     <input class="line" value=""/> *@
+                @* } *@
+                <Document Lines="@lines" Visible="@(!string.IsNullOrWhiteSpace(selectedPageId))" OnSave="OnSaveDocument"></Document>
+            </div>
+        </div>
     </TabPage>
 
 </Tabs>
 
+<Modal @ref="modal">
+    <Title>
+        @GetDialogTitle()
+    </Title>
+    <Body>
+        <p>
+            <input @bind="newPageText"/>
+        </p>
+    </Body>
+    <Footer>
+        <button type="button" class="btn btn-primary" @onclick="SavePage">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="() => modal.Close()">Close</button>
+    </Footer>
+</Modal>
+
 @code {
     private string botSettings;
+    private string newPageText;
+    bool editPage = true;
+    string selectedPageId;
+
+    string GetDialogTitle() => editPage?"Edit page":"Add new page";
+    
+    List<KnowledgeBasePage> pages = new();
+    List<KnowledgeBaseLine> lines = new();
+    private Modal modal { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
         botSettings = await settingsService.GetBotSettings();
+        pages = await KnowledgeBaseSettingsService.GetPages();
     }
 
     private async Task SaveBotSettings()
@@ -36,4 +85,32 @@
         await settingsService.SaveBotSettings(botSettings);
         toastService.ShowSuccess("settings saved");
     }
+
+    private async Task SavePage()
+    {
+        Console.WriteLine("save page");
+        if (editPage)
+        {
+            await KnowledgeBaseSettingsService.UpdatePage(selectedPageId,newPageText);
+        }
+        else
+        {
+            await KnowledgeBaseSettingsService.AddPage(newPageText);
+        }
+        newPageText = "";
+        pages = await KnowledgeBaseSettingsService.GetPages();
+        modal.Close();
+    }
+
+    private async Task SelectPage(string id)
+    {
+        selectedPageId = id;
+        lines = await KnowledgeBaseSettingsService.GetLines(id);
+    }
+
+    private async Task OnSaveDocument((List<KnowledgeBaseLine>, List<KnowledgeBaseLine>) obj)
+    {
+        await KnowledgeBaseSettingsService.SetLines(obj.Item1, obj.Item2, selectedPageId);
+    }
+
 }
