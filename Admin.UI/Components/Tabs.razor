@@ -8,7 +8,7 @@
                 class="btn @GetButtonClass(tabPage)"
                 @onclick=@(() => ActivatePage(tabPage))>
                 @tabPage.Text
-                @if (Pages.IndexOf(tabPage) > 0)
+                @if (Pages.IndexOf(tabPage) > 0 && AllowTabPageRemoval)
                 {
                     <img src="close2.png" class="close" @onclick="async () => await OnRemoveLocal(tabPage.Id)" />
                 }
@@ -19,7 +19,8 @@
 </CascadingValue>
 
 @code {
-
+    [Parameter]
+    public bool AllowTabPageRemoval { get; set; } = true;
     private async Task OnRemoveLocal(string id)
     {
         await OnRemove(id);
