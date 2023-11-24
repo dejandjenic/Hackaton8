@@ -2,22 +2,23 @@
 @using Edge.UI.Services
 @inject ChatService chatService;
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Chat</PageTitle>
 
-<ul id="messages">
-    @foreach (var message in Messages)
-    {
-        <li class="@(message.FromUser?"user":"system")">
-            @message.Text
-        </li>
-    }
-</ul>
-
-<textarea @bind="Text" rows="10" cols="50"></textarea>
-
-<br />
-
-<button @onclick="SendMessage">send</button>
+<div class="chat_messages">
+    <ul id="messages">
+        @foreach (var message in Messages)
+        {
+            <li class="@(message.FromUser ? "user" : "system")">
+            
+                @message.Text
+            </li>
+        }
+    </ul>
+</div>
+<div class="question_section">
+    <textarea @bind="Text" placeholder="Type something ..." class="text_question"></textarea>
+    <button @onclick="SendMessage" class="send_button">send</button>
+</div>
 
 @code{
 
