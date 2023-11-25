@@ -1,14 +1,32 @@
 using System.Security.Claims;
 using API.Configuration;
+using API.Extensions;
 using API.Hubs;
 using API.Repositories;
 using API.Services;
+using Azure.Core;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.SignalR.Management;
 using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+
+if (builder.Environment.IsAzureAppService())
+{
+    TokenCredential cred = builder.Environment.IsAzureAppService() ?
+        new DefaultAzureCredential(false) : new AzureCliCredential();
+
+    var keyvaultUri = new Uri($"https://belgrade.vault.azure.net/");
+    var secretClient = new SecretClient(keyvaultUri, cred);
+    builder.Configuration.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
+    
+}
 
 var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
 builder.Services.AddSingleton(appSettings);
