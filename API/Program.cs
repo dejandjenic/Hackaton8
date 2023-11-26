@@ -15,7 +15,7 @@ using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+builder.Services.AddApplicationInsightsTelemetry();
 
 if (builder.Environment.IsAzureAppService())
 {

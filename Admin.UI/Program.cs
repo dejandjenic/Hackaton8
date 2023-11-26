@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Admin.UI;
 using Admin.UI.ApiClients;
 using Admin.UI.Services;
+using BlazorApplicationInsights;
+using BlazorApplicationInsights.Models;
 using Blazored.Toast;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -10,6 +12,26 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
+
+
+builder.Services.AddBlazorApplicationInsights(config =>
+    {
+        config.ConnectionString = appSettings.AppInsightConnectionString;
+        config.InstrumentationKey = appSettings.AppInsightInstrumentationKey;
+    },
+    async applicationInsights =>
+    {
+        var telemetryItem = new TelemetryItem()
+        {
+            Tags = new Dictionary<string, object?>()
+            {
+                { "ai.cloud.role", "SPA" },
+                { "ai.cloud.roleInstance", "Blazor Wasm" },
+            }
+        };
+
+        await applicationInsights.AddTelemetryInitializer(telemetryItem);
+    });
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddSingleton(appSettings);
