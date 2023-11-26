@@ -30,7 +30,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish ./Edge.UI/Edge.UI.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish ./Edge.UI/Edge.UI.csproj -c Release -o /github/workspace/home/runner/.dotnet/myapp
 
       - name: Build And Deploy
         id: builddeploy
@@ -41,7 +41,7 @@ jobs:
           action: "upload"
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "${{env.DOTNET_ROOT}}/myapp" # App source code path
+          app_location: "/github/workspace/home/runner/.dotnet/myapp" # App source code path
           api_location: "" # Api source code path - optional
           output_location: "wwwroot" # Built app content directory - optional
           skip_app_build: true
