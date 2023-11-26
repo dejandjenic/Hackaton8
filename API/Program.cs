@@ -97,7 +97,7 @@ app.MapGet("/login", async ([FromServices]IHubContextStore store,HttpRequest req
         {
             Expires = DateTimeOffset.UtcNow.AddYears(10),
             Path = "/",
-            Secure = false, // Use "false" if not using HTTPS
+            Secure = true, // Use "false" if not using HTTPS
             HttpOnly = true,
         });
     }
