@@ -30,7 +30,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish ./Edge.UI/Edge.UI.csproj -c Release -o /github/workspace/home/runner/.dotnet/myapp
+        run: dotnet publish ./Edge.UI/Edge.UI.csproj -c Release -o /myapp
 
       - name: Build And Deploy
         id: builddeploy
