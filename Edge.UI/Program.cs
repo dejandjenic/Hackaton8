@@ -16,11 +16,12 @@ builder.Services.AddSingleton<ChatService>();
 builder.Services.AddHttpClient<BackendApiClient>(x =>
 {
     x.BaseAddress = new Uri(appSettings.BaseAddress);
-});
+})
+    .AddHttpMessageHandler<CookieHandler>();
 
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
+builder.Services.AddTransient<CookieHandler>();
 await builder.Build().RunAsync();
