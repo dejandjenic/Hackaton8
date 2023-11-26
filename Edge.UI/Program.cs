@@ -6,11 +6,16 @@ using Edge.UI.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
+var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
+
+builder.Services.AddSingleton(appSettings);
+
+
 builder.Services.AddSingleton<ConnectionService>();
 builder.Services.AddSingleton<ChatService>();
 builder.Services.AddHttpClient<BackendApiClient>(x =>
 {
-    x.BaseAddress = new Uri("http://localhost:5250/");
+    x.BaseAddress = new Uri(appSettings.BaseAddress);
 });
 
 builder.RootComponents.Add<App>("#app");

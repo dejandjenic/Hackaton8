@@ -27,7 +27,22 @@
         <a class="dismiss">🗙</a>
     </div>
     <script src="_content/Microsoft.Authentication.WebAssembly.Msal/AuthenticationService.js"></script>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>
+        if (window.location.hostname.includes("localhost")) {
+            Blazor.start({
+                webAssembly: {
+                    environment: "Development"
+                }
+            });
+        } else {
+            Blazor.start({
+                webAssembly: {
+                    environment: "Production"
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>
