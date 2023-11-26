@@ -31,7 +31,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish ./Edge.UI/Edge.UI.csproj -c Release -o /home/runner/work/Hackaton8/Hackaton8/myadminapp
+        run: dotnet publish ./Admin.UI/Admin.UI.csproj -c Release -o /home/runner/work/Hackaton8/Hackaton8/myadminapp
 
       - name: Build And Deploy
         id: builddeploy
