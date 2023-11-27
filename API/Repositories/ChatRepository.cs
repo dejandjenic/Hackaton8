@@ -1,11 +1,5 @@
 namespace API.Repositories;
 
-public interface IChatRepository
-{
-    Task<List<ChatHistory>> GetHistory(string userId);
-    Task SaveNewChatItem(string userId,string text, bool fromUser);
-}
-
 public class ChatRepository : IChatRepository
 {
     private List<ChatHistory> list = new ();
@@ -23,11 +17,4 @@ public class ChatRepository : IChatRepository
             Text = text
         });
     }
-}
-
-public class ChatHistory
-{
-    public bool FromUser { get; set; }
-    public string Text { get; set; }
-    public DateTime Date { get; set; }
 }

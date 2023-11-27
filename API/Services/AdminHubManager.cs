@@ -1,18 +1,19 @@
 using API.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Shared;
 
 namespace API.Services;
 
-public interface IAdminHubManager
-{
-    Task ChatEvent(string userId,object data);
-}
-
 public class AdminHubManager(IHubContext<AdminHub,IAdminHub> context,IHubContextStore store):IAdminHubManager
 {
-    public async Task ChatEvent(string userId,object data)
+    public async Task ChatEvent(ChatUserEvent chatEvent)
     {
-        
-        var x = store.AdminHubContext.Clients.Group(userId);//.ChatEvent(data);
+
+        await context.Clients.All.NewChatEvent(chatEvent);
+    }
+
+    public async Task ChatUserEvent(string userId, ChatUserEventMessage message)
+    {
+        await context.Clients.Group(userId).ChatEvent(message);
     }
 }

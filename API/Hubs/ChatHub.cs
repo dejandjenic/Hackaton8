@@ -3,10 +3,8 @@ using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-public interface IChatHub
-{
-    Task Respond(string message);
-}
+namespace API.Hubs;
+
 [Authorize]
 public class ChatHub(IGPTService gptService) : Hub<IChatHub>
 {
@@ -22,6 +20,5 @@ public class ChatHub(IGPTService gptService) : Hub<IChatHub>
         var userId = Context.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
 
         await gptService.Respond(userId, message);
-        //Clients.Client(Context.ConnectionId).SendAsync("gpt", gptService.Respond("temp",message).GetAwaiter().GetResult());
     }
 }

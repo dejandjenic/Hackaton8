@@ -2,12 +2,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace API.Hubs;
 
-public interface IAdminHub
-{
-    Task ChatEvent(object data);
-    Task NewChatEvent(object data);
-}
-
 public class AdminHub : Hub<IAdminHub>
 {
     public void Watch(string userId)

@@ -21,11 +21,11 @@ public interface IGPTService
     Task Respond(string userId, string message);
 }
 
-public class GPTService(IChatService chatService, AppSettings appSettings, IHubContext<ChatHub,IChatHub> hubContext,IHubContext<AdminHub,IAdminHub> adminHubManager) : IGPTService
+public class GPTService(IChatService chatService, AppSettings appSettings, IUserHubManager userHubManager,IAdminHubManager adminHubManager) : IGPTService
 {
     public async Task Respond(string userId, string message)
     {
-        await adminHubManager.Clients.Group(userId).ChatEvent(new ChatUserEventMessage
+        await adminHubManager.ChatUserEvent(userId,new ChatUserEventMessage
         {
             Message = message,
             FromUser = true,
@@ -101,7 +101,7 @@ public class GPTService(IChatService chatService, AppSettings appSettings, IHubC
                 }
             };
 
-            var question = $"Question: {message}"; //?
+            var question = message;
 
             chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.User, question));
             await chatService.SaveNewChatItem(userId, question, true);
@@ -128,12 +128,12 @@ public class GPTService(IChatService chatService, AppSettings appSettings, IHubC
         
         await chatService.SaveNewChatItem(userId, answer,false);
         
-        await hubContext.Clients.Group(userId).Respond(answer);
-        await adminHubManager.Clients.All.NewChatEvent(new ChatUserEvent
+        await userHubManager.Respond(userId,answer);
+        await adminHubManager.ChatEvent(new ChatUserEvent
         {
            UserId = userId
         });
-        await adminHubManager.Clients.Group(userId).ChatEvent(new ChatUserEventMessage
+        await adminHubManager.ChatUserEvent(userId,new ChatUserEventMessage
         {
             Message = answer,
             FromUser = false,

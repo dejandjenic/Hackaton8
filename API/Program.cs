@@ -4,76 +4,29 @@ using API.Extensions;
 using API.Hubs;
 using API.Repositories;
 using API.Services;
-using Azure.Core;
-using Azure.Extensions.AspNetCore.Configuration.Secrets;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.SignalR.Management;
-using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationInsightsTelemetry();
-
-if (builder.Environment.IsAzureAppService())
-{
-    TokenCredential cred = builder.Environment.IsAzureAppService() ?
-        new DefaultAzureCredential(false) : new AzureCliCredential();
-
-    var keyvaultUri = new Uri($"https://belgrade.vault.azure.net/");
-    var secretClient = new SecretClient(keyvaultUri, cred);
-    builder.Configuration.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
-    
-}
+builder.RegisterAzureVault();
 
 var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>();
 builder.Services.AddSingleton(appSettings);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+builder.AddSwagger();
 
 builder.Services.AddSingleton<IGPTService,GPTService>();
 builder.Services.AddSingleton<IChatRepository,ChatRepository>();
 builder.Services.AddSingleton<IChatService,ChatService>();
-builder.Services.AddSingleton<AdminHubManager>();
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAdB2C"));
-builder.Services.AddAuthorization();
-
-builder.Services.AddCors(x => 
-    x.AddDefaultPolicy(p=>
-        p.AllowAnyHeader().AllowAnyMethod().
-            SetIsOriginAllowed(origin => true)
-            .AllowCredentials()
-    )
-);
-
-builder.Services.AddSignalR().AddAzureSignalR(options =>
-{
-    options.ConnectionString = appSettings.SignalRConnectionString;
-    //  This is a tircky way to associate user name with connection for sample purpose.
-    //  For PROD, we suggest to use authentication and authorization, see here:
-    //  https://docs.microsoft.com/en-us/aspnet/core/signalr/authn-and-authz
-    options.ClaimsProvider = context => new Claim[]
-    {
-        //new Claim(ClaimTypes.NameIdentifier, context.User?.Identity.IsAuthenticated.ToString())
-        new Claim(ClaimTypes.NameIdentifier, context.Request.Query["username"])
-    };
-});
+builder.Services.AddSingleton<IAdminHubManager,AdminHubManager>();
+builder.Services.AddSingleton<IUserHubManager,UserHubManager>();
 builder.Services.AddHttpContextAccessor();
-builder.Services
-    .AddSingleton<SignalRService>()
-    .AddHostedService(sp => sp.GetService<SignalRService>())
-    .AddSingleton<IHubContextStore>(sp => sp.GetService<SignalRService>());
 
-// builder.Services.ConfigureHttpJsonOptions(options =>
-// {
-//     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
-// });
+builder.AddAuthenticationAndAuthorization();
+builder.AddCors();
+builder.AddSignalR(appSettings);
 
 var app = builder.Build();
 
@@ -91,28 +44,16 @@ app.UseAuthorization();
 
 app.MapGet("/login", async ([FromServices]IHubContextStore store,HttpRequest request,HttpResponse response) =>
 {
-    var cookie = request.Cookies["id"];
-    if (cookie == null)
-    {
-        cookie = Guid.NewGuid().ToString();
-        response.Cookies.Append("id",cookie,new CookieOptions()
-        {
-            Expires = DateTimeOffset.UtcNow.AddYears(10),
-            Path = "/",
-            Secure = true, // Use "false" if not using HTTPS
-            HttpOnly = true,
-        });
-    }
+    var cookie = request.EnsureUserCookie(response);
     return await store.ChatHubContext.NegotiateAsync(new NegotiationOptions()
     {
         Claims = new List<Claim>()
         {
-            new Claim(ClaimTypes.NameIdentifier, cookie)
+            new (ClaimTypes.NameIdentifier, cookie)
         }
     });
 });
 app.MapGet("/login-admin", async ([FromServices]IHubContextStore store) => await store.AdminHubContext.NegotiateAsync()).RequireAuthorization();
-app.MapGet("/test" ,()=> Guid.NewGuid()).RequireAuthorization();
 
 app.UseAzureSignalR(routes =>
 {
@@ -126,8 +67,3 @@ app.UseAzureSignalR(routes =>
 
 app.Run();
 
-
-//  [JsonSerializable(typeof(Test[]))]
-// internal partial class AppJsonSerializerContext : JsonSerializerContext
-// {
-// }

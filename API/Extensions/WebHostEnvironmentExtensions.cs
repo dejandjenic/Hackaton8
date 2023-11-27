@@ -1,6 +1,6 @@
 namespace API.Extensions;
 
-public static class IWebHostEnvironmentExtensions
+public static class WebHostEnvironmentExtensions
 {
     public static bool IsAzureAppService(this IWebHostEnvironment env)
     {
