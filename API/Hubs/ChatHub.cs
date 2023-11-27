@@ -6,8 +6,14 @@ using Microsoft.AspNetCore.SignalR;
 namespace API.Hubs;
 
 [Authorize]
-public class ChatHub(IGPTService gptService) : Hub<IChatHub>
+public class ChatHub : Hub<IChatHub>
 {
+    private readonly IChatService _chatService;
+
+    public ChatHub(IChatService chatService)
+    {
+        _chatService = chatService;
+    }
     public override Task OnConnectedAsync()
     {
         var userId = Context.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
@@ -15,10 +21,10 @@ public class ChatHub(IGPTService gptService) : Hub<IChatHub>
         return base.OnConnectedAsync();
     }
 
-    public async Task Message(string message)
-    {    
+    public async Task Message(string? sessionId, string message)
+    {
         var userId = Context.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
 
-        await gptService.Respond(userId, message);
+        await _chatService.GetChatCompletionAsync(sessionId, message, userId);
     }
 }

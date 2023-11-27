@@ -1,0 +1,62 @@
+﻿@page "/"
+@using API.Models.Cosmos
+@using Edge.UI.Services
+@inject ChatService chatService;
+
+<div class="sidebar" id="sidebar_chat">
+    <NavMenu @ref="@NavMenu" OnChatClicked="LoadChatEventHandlerAsync" OnNavBarVisibilityUpdated="UpdateNavBarVisibility" />
+</div>
+
+<main>
+    <div id="header_chat">
+        <h1>Chat with us</h1>
+    </div>
+
+    <article id="chat">
+        <Chat @ref="@Chat" CurrentSession="@CurrentSession" OnChatUpdated="ForceRefreshAsync" OnNavBarVisibilityUpdated="UpdateNavBarVisibility"/>
+    </article>
+</main>
+
+@code {
+
+    [Parameter]
+    public EventCallback<string> OnChatUpdated { get; set; } = default!;
+
+    private Session? CurrentSession;
+    private Chat? Chat = default;
+    private NavMenu? NavMenu = default;
+    private bool IsNavMenuCollapsed { get; set; }
+
+    private void UpdateNavBarVisibility()
+    {
+        IsNavMenuCollapsed = !IsNavMenuCollapsed;
+    }
+
+    protected override async void OnInitialized()
+    {
+    //  await chatService.Init();
+        NavMenu = new NavMenu();
+        Chat = new Chat();
+    }
+
+    public async void LoadChatEventHandlerAsync(Session session)
+    {
+        CurrentSession = session;
+
+        if (Chat is not null)
+        {
+            Chat.ChangeCurrentChatSession(session);
+        }
+
+    //the UI needs updating
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async void ForceRefreshAsync()
+    {
+    //the UI needs updating
+        await InvokeAsync(StateHasChanged);
+
+        NavMenu?.UpdateNavMenuDisplay("Rename by Open AI");
+    }
+}

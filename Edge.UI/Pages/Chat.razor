@@ -1,0 +1,201 @@
+﻿@using Edge.UI.Services
+@using Shared.Constants
+@using API.Models.Cosmos
+@using Edge.UI.ApiClients
+@using Shared
+@inject ChatService chatService;
+@inject BackendApiClient client;
+
+<PageTitle>Chat</PageTitle>
+
+<div class="chat_messages">
+    @if (CurrentSession is null)
+    {
+        <div class="alert alert-primary">
+            <div class="alert-heading">
+                <div class="spinner-border text-primary me-1" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                Loading...
+            </div>
+            <p class="text-nowrap mb-0 fst-italic">
+                Please wait while your chat loads.
+            </p>
+        </div>
+    }
+    else if (CurrentSession.SessionId == Interface.EMPTY_SESSION)
+    {
+        <div class="alert alert-warning">
+            <h4 class="alert-heading">
+                <i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>
+                No Chats Available
+            </h4>
+            <p class="text-nowrap mb-0 fst-italic">
+                Use the New Chat option to start a new chat.
+            </p>
+        </div>
+    }
+    else
+    {
+        if (_messagesInChat is null || _loadingComplete == false)
+        {
+            <div class="alert alert-primary">
+                <div class="alert-heading">
+                    <div class="spinner-border text-primary me-1" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    Loading...
+                </div>
+                <p class="text-nowrap mb-0 fst-italic">
+                    Please wait while your chat loads.
+                </p>
+            </div>
+        }
+        else
+        {
+            if (_messagesInChat.Count == 0)
+            {
+                <div class="alert alert-info">
+                    <h4 class="alert-heading">
+                        <i class="bi bi-lightbulb-fill me-1" aria-hidden="true"></i>
+                        Get Started
+                    </h4>
+                    <p class="text-nowrap mb-0 fst-italic">
+                        Start chatting with your helpful AI assistant.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <ul id="messages">
+                    @foreach (var message in _messagesInChat)
+                    {
+                        <li class="@(message.Sender == nameof(Participants.User) ? "user": "system")">
+                            @message.Text
+                        </li>
+                    }
+                </ul>
+            }
+        }
+    }
+
+</div>
+<div class="question_section">
+@if (CurrentSession is not null && CurrentSession?.SessionId != Interface.EMPTY_SESSION)
+{
+    <textarea @bind="@UserPromptSet" placeholder="Type something ..." class="text_question" @oninput="@((e) => { UserPrompt=e.Value?.ToString();})"></textarea>
+    <button @onclick="SendMessage" class="send_button">send</button>
+}
+</div>
+
+@code {
+
+    public string Text { get; set; }
+    [Parameter]
+    public EventCallback<string> OnChatUpdated { get; set; }
+    [Parameter]
+    public Session? CurrentSession { get; set; }
+    [Parameter]
+    public EventCallback OnNavBarVisibilityUpdated { get; set; }
+    private List<Message>? _messagesInChat;
+    private static event EventHandler<Session>? _onMessagePosted;
+    private bool _loadingComplete;
+    private string? UserPromptSet { get; set; }
+    private string? UserPrompt { get; set; }
+
+    protected override async void OnInitialized()
+    {
+        // await chatService.RegisterGptHandler((message) =>
+        // {
+        //     Messages.Add(new ChatMessage(false,message));
+        //     StateHasChanged();
+        // });
+        _onMessagePosted += async (o, e) =>
+        {
+            await this.InvokeAsync(async () =>
+            {
+                if (e.SessionId == CurrentSession?.SessionId)
+                {
+                    await this.ReloadChatMessagesAsync();
+                    this.StateHasChanged();
+                }
+            });
+        };
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await chatService.Init();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CurrentSession is null)
+        {
+            return;
+        }
+
+        if (CurrentSession.SessionId != Interface.EMPTY_SESSION & CurrentSession.SessionId is not null)
+        {
+            var messages = await client.ChatMessages(CurrentSession?.SessionId);
+
+            _messagesInChat = messages;
+        }
+
+        _loadingComplete = true;
+    }
+
+    public void ChangeCurrentChatSession(Session session)
+    {
+        CurrentSession = session;
+    }
+
+    private async Task SendMessage()
+    {
+        if (CurrentSession?.SessionId == Interface.EMPTY_SESSION || UserPrompt == String.Empty || UserPrompt is null)
+        {
+            return;
+        }
+
+        if (UserPrompt != String.Empty)
+        {
+            UserPromptSet = String.Empty;
+        }
+
+        await chatService.SendMessage(CurrentSession?.SessionId, UserPrompt);
+
+        //todo resolve the error
+        // if (_messagesInChat?.Count == 2)
+        // {
+        //     string newSessionName = await client.ChatTitle(CurrentSession?.SessionId, String.Join(Environment.NewLine, _messagesInChat.Select(m => m.Text)));
+
+        //     if (CurrentSession is not null)
+        //     {
+        //         CurrentSession.Name = newSessionName;
+        //     }
+        // }
+        await OnChatUpdated.InvokeAsync();
+
+        if (_onMessagePosted is not null && CurrentSession is not null)
+        {
+            _onMessagePosted.Invoke(null, CurrentSession);
+        }
+    }
+
+    private string GetChatSessionName() => CurrentSession switch
+    {
+        null => String.Empty,
+        (Session s) when s.SessionId == Interface.EMPTY_SESSION => String.Empty,
+        _ => CurrentSession.Name
+    };
+
+
+    public async Task ReloadChatMessagesAsync()
+    {
+        if (CurrentSession is not null)
+        {
+            var messages = await client.ChatMessages(CurrentSession?.SessionId);
+            _messagesInChat = messages;
+        }
+    }
+}

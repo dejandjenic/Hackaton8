@@ -12,8 +12,8 @@ public class ChatService(ConnectionService connectionService)
         connectionService.Bind("Respond", handler);
     }
 
-    public async Task SendMessage(string message)
+    public async Task SendMessage(string? sessionId, string message)
     {
-        await connectionService.Send("Message", message);
+        await connectionService.Send("Message", sessionId, message);
     }
 }
