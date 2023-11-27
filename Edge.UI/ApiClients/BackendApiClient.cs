@@ -23,8 +23,8 @@ public class BackendApiClient(HttpClient httpClient)
 
     public async Task<string> ChatTitle(string? sessionId, string conversationText)
     {
-        var response = await httpClient.GetFromJsonAsync<string>($"/chat-title/{sessionId}?text={conversationText}");
-        return response;
+        var response = await httpClient.GetFromJsonAsync<Title>($"/chat-title/{sessionId}?text={conversationText}");
+        return response.Text;
     }
 
     public async Task<Session> Session(string userId)
@@ -38,4 +38,8 @@ public class LoginResponse
 {
     public string Url { get; set; }
     public string AccessToken { get; set; }
+}
+public class Title
+{
+    public string Text { get; set; }
 }

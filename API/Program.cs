@@ -59,11 +59,7 @@ app.MapGet("/login-admin", async ([FromServices] IHubContextStore store) => awai
 app.MapGet("/new-session/{userId}", async (string userId, [FromServices] IChatService chatService, HttpRequest request) => await chatService.CreateNewChatSessionAsync(userId));
 app.MapGet("/chat-history/{userId}", async (string userId, [FromServices] IChatService chatService) => await chatService.GetAllChatSessionsAsync(userId));
 app.MapGet("/chat-history-session/{sessionId}", async (string sessionId, [FromServices] IChatService chatService) => await chatService.GetChatSessionMessagesAsync(sessionId));
-app.MapGet("/chat-title/{sessionId}", async ([FromRoute] string sessionId, [FromQuery(Name = "text")] string conversationText, [FromServices] IChatService chatService) =>
-{
-    var nesto = await chatService.SummarizeChatSessionNameAsync(sessionId, conversationText);
-    return nesto;
-});
+app.MapGet("/chat-title/{sessionId}", async ([FromRoute] string sessionId, [FromQuery(Name = "text")] string conversationText, [FromServices] IChatService chatService) => new {Text = await chatService.SummarizeChatSessionNameAsync(sessionId, conversationText) });
 
 app.UseAzureSignalR(routes =>
 {

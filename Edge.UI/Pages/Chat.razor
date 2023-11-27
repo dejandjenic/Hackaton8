@@ -165,15 +165,16 @@
         await chatService.SendMessage(CurrentSession?.SessionId, UserPrompt);
 
         //todo resolve the error
-        // if (_messagesInChat?.Count == 2)
-        // {
-        //     string newSessionName = await client.ChatTitle(CurrentSession?.SessionId, String.Join(Environment.NewLine, _messagesInChat.Select(m => m.Text)));
+        if (_messagesInChat?.Count == 2)
+        {
+            string newSessionName;
+            newSessionName = await client.ChatTitle(CurrentSession?.SessionId, String.Join(Environment.NewLine, _messagesInChat.Select(m => m.Text)));
 
-        //     if (CurrentSession is not null)
-        //     {
-        //         CurrentSession.Name = newSessionName;
-        //     }
-        // }
+            if (CurrentSession is not null)
+            {
+                CurrentSession.Name = newSessionName;
+            }
+        }
         await OnChatUpdated.InvokeAsync();
 
         if (_onMessagePosted is not null && CurrentSession is not null)
