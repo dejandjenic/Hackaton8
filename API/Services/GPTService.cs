@@ -18,126 +18,126 @@ namespace API.Services;
 
 public interface IGPTService
 {
-    Task Respond(string userId, string message);
+	Task Respond(string userId, string message);
 }
 
-public class GPTService(IChatService chatService, AppSettings appSettings, IUserHubManager userHubManager,IAdminHubManager adminHubManager) : IGPTService
+public class GPTService(IChatService chatService, AppSettings appSettings, IUserHubManager userHubManager, IAdminHubManager adminHubManager) : IGPTService
 {
-    public async Task Respond(string userId, string message)
-    {
-        await adminHubManager.ChatUserEvent(userId,new ChatUserEventMessage
-        {
-            Message = message,
-            FromUser = true,
-            UserId = userId
-        });
-        
-        string aoaiEndpoint = appSettings.OpenAIEndpoint;
-        string aoaiApiKey = appSettings.OpenAIKey;
-        string acsEndpoint = appSettings.SearchEndpoint;
-        string acsApiKey = appSettings.SearchKey;
-        string aoaiModel = appSettings.OpenAIModel;
-        string collectionName = appSettings.SearchCollectionName;
+	public async Task Respond(string userId, string message)
+	{
+		await adminHubManager.ChatUserEvent(userId, new ChatUserEventMessage
+		{
+			Text = message,
+			FromUser = true,
+			UserId = userId
+		});
 
-        var aoai = new OpenAIClient(new Uri(aoaiEndpoint), new AzureKeyCredential(aoaiApiKey));
-        var useRealChat = true;
-        
-        // ISemanticTextMemory memory = new MemoryBuilder()
-        //     .WithLoggerFactory(LoggerFactory.Create(builder => builder.AddConsole()))
-        //     .WithMemoryStore(new AzureCognitiveSearchMemoryStore(acsEndpoint, acsApiKey))
-        //     .WithAzureOpenAITextEmbeddingGenerationService(
-        //         aoaiModel, aoaiEndpoint, aoaiApiKey)
-        //     .Build();
-        // IList<string> collections = await memory.GetCollectionsAsync();
-        //
-        // if (collections.Contains(collectionName))
-        // {
-        //     Console.WriteLine("Found database");
-        // }
-        // else
-        // {
-        //     using HttpClient client = new();
-        //     string s = await client.GetStringAsync(
-        //         "https://devblogs.microsoft.com/dotnet/performance_improvements_in_net_7");
-        //     List<string> paragraphs =
-        //         TextChunker.SplitPlainTextParagraphs(
-        //             TextChunker.SplitPlainTextLines(
-        //                 WebUtility.HtmlDecode(Regex.Replace(s, @"<[^>]+>|&nbsp;", "")),
-        //                 128),
-        //             1024);
-        //     for (int i = 0; i < paragraphs.Count; i++)
-        //         await memory.SaveInformationAsync(collectionName, paragraphs[i], $"paragraph{i}");
-        //     Console.WriteLine("Generated database");
-        // }
+		string aoaiEndpoint = appSettings.OpenAIEndpoint;
+		string aoaiApiKey = appSettings.OpenAIKey;
+		string acsEndpoint = appSettings.SearchEndpoint;
+		string acsApiKey = appSettings.SearchKey;
+		string aoaiModel = appSettings.OpenAIModel;
+		string collectionName = appSettings.SearchCollectionName;
 
-        var history = await chatService.GetHistory(userId);
-        var answer = "";
+		var aoai = new OpenAIClient(new Uri(aoaiEndpoint), new AzureKeyCredential(aoaiApiKey));
+		var useRealChat = true;
 
-        StringBuilder builder = new();
-        if (useRealChat)
-        {
+		// ISemanticTextMemory memory = new MemoryBuilder()
+		//     .WithLoggerFactory(LoggerFactory.Create(builder => builder.AddConsole()))
+		//     .WithMemoryStore(new AzureCognitiveSearchMemoryStore(acsEndpoint, acsApiKey))
+		//     .WithAzureOpenAITextEmbeddingGenerationService(
+		//         aoaiModel, aoaiEndpoint, aoaiApiKey)
+		//     .Build();
+		// IList<string> collections = await memory.GetCollectionsAsync();
+		//
+		// if (collections.Contains(collectionName))
+		// {
+		//     Console.WriteLine("Found database");
+		// }
+		// else
+		// {
+		//     using HttpClient client = new();
+		//     string s = await client.GetStringAsync(
+		//         "https://devblogs.microsoft.com/dotnet/performance_improvements_in_net_7");
+		//     List<string> paragraphs =
+		//         TextChunker.SplitPlainTextParagraphs(
+		//             TextChunker.SplitPlainTextLines(
+		//                 WebUtility.HtmlDecode(Regex.Replace(s, @"<[^>]+>|&nbsp;", "")),
+		//                 128),
+		//             1024);
+		//     for (int i = 0; i < paragraphs.Count; i++)
+		//         await memory.SaveInformationAsync(collectionName, paragraphs[i], $"paragraph{i}");
+		//     Console.WriteLine("Generated database");
+		// }
 
-            var chatCompletionsOptions = new ChatCompletionsOptions();
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System,
-                "You are an AI assistant that helps people find information."));
-            foreach (var item in history)
-            {
-                chatCompletionsOptions.Messages.Add(new ChatMessage(
-                    item.FromUser ? ChatRole.User : ChatRole.Assistant,
-                    item.Text));
-            }
+		var history = await chatService.GetHistory(userId);
+		var answer = "";
 
-            chatCompletionsOptions.AzureExtensionsOptions = new AzureChatExtensionsOptions
-            {
-                Extensions =
-                {
-                    new AzureCognitiveSearchChatExtensionConfiguration
-                    {
-                        SearchEndpoint = new Uri(acsEndpoint),
-                        SearchKey = new AzureKeyCredential(acsApiKey),
-                        IndexName = collectionName,
-                        ShouldRestrictResultScope = false,
-                    }
-                }
-            };
+		StringBuilder builder = new();
+		if (useRealChat)
+		{
 
-            var question = message;
+			var chatCompletionsOptions = new ChatCompletionsOptions();
+			chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System,
+				"You are an AI assistant that helps people find information."));
+			foreach (var item in history)
+			{
+				chatCompletionsOptions.Messages.Add(new ChatMessage(
+					item.FromUser ? ChatRole.User : ChatRole.Assistant,
+					item.Text));
+			}
 
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.User, question));
-            await chatService.SaveNewChatItem(userId, question, true);
+			chatCompletionsOptions.AzureExtensionsOptions = new AzureChatExtensionsOptions
+			{
+				Extensions =
+				{
+					new AzureCognitiveSearchChatExtensionConfiguration
+					{
+						SearchEndpoint = new Uri(acsEndpoint),
+						SearchKey = new AzureKeyCredential(acsApiKey),
+						IndexName = collectionName,
+						ShouldRestrictResultScope = false,
+					}
+				}
+			};
 
-            builder.Clear();
-            var response = await aoai.GetChatCompletionsStreamingAsync(aoaiModel, chatCompletionsOptions);
+			var question = message;
 
-            await foreach (StreamingChatChoice choice in response.Value.GetChoicesStreaming())
-            {
-                await foreach (ChatMessage item in choice.GetMessageStreaming())
-                {
-                    builder.Append(item.Content);
-                }
-            }
+			chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.User, question));
+			await chatService.SaveNewChatItem(userId, question, true, ChatRole.User.ToString());
 
-            answer = builder.ToString();
-            chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Assistant, answer));
-        }
-        else
-        {
-            answer = "no gpt";
-        }
+			builder.Clear();
+			var response = await aoai.GetChatCompletionsStreamingAsync(aoaiModel, chatCompletionsOptions);
 
-        
-        await chatService.SaveNewChatItem(userId, answer,false);
-        
-        await userHubManager.Respond(userId,answer);
-        await adminHubManager.ChatEvent(new ChatUserEvent
-        {
-           UserId = userId
-        });
-        await adminHubManager.ChatUserEvent(userId,new ChatUserEventMessage
-        {
-            Message = answer,
-            FromUser = false,
-            UserId = userId
-        });
-    }
+			await foreach (StreamingChatChoice choice in response.Value.GetChoicesStreaming())
+			{
+				await foreach (ChatMessage item in choice.GetMessageStreaming())
+				{
+					builder.Append(item.Content);
+				}
+			}
+
+			answer = builder.ToString();
+			chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.Assistant, answer));
+		}
+		else
+		{
+			answer = "no gpt";
+		}
+
+
+		await chatService.SaveNewChatItem(userId, answer, false, ChatRole.Assistant.ToString());
+
+		await userHubManager.Respond(userId, answer);
+		await adminHubManager.ChatEvent(new ChatUserEvent
+		{
+			UserId = userId
+		});
+		await adminHubManager.ChatUserEvent(userId, new ChatUserEventMessage
+		{
+			Text = answer,
+			FromUser = false,
+			UserId = userId
+		});
+	}
 }

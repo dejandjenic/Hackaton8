@@ -17,11 +17,12 @@ builder.Services.AddSingleton(appSettings);
 
 builder.AddSwagger();
 
-builder.Services.AddSingleton<IGPTService,GPTService>();
-builder.Services.AddSingleton<IChatRepository,ChatRepository>();
-builder.Services.AddSingleton<IChatService,ChatService>();
-builder.Services.AddSingleton<IAdminHubManager,AdminHubManager>();
-builder.Services.AddSingleton<IUserHubManager,UserHubManager>();
+builder.Services.AddSingleton<IGPTService, GPTService>();
+builder.Services.AddSingleton<IChatRepository, ChatRepository>();
+builder.Services.AddSingleton<IChatService, ChatService>();
+builder.Services.AddSingleton<IAdminHubManager, AdminHubManager>();
+builder.Services.AddSingleton<IUserHubManager, UserHubManager>();
+builder.Services.AddSingleton<ICosmosDbService, CosmosDbService>();
 builder.Services.AddHttpContextAccessor();
 
 builder.AddAuthenticationAndAuthorization();
@@ -34,35 +35,41 @@ app.UseCors();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 
-app.MapGet("/login", async ([FromServices]IHubContextStore store,HttpRequest request,HttpResponse response) =>
+app.MapGet("/login", async ([FromServices] IHubContextStore store, HttpRequest request, HttpResponse response) =>
 {
-    var cookie = request.EnsureUserCookie(response);
-    return await store.ChatHubContext.NegotiateAsync(new NegotiationOptions()
-    {
-        Claims = new List<Claim>()
-        {
-            new (ClaimTypes.NameIdentifier, cookie)
-        }
-    });
+	var cookie = request.EnsureUserCookie(response);
+	return await store.ChatHubContext.NegotiateAsync(new NegotiationOptions()
+	{
+		Claims = new List<Claim>()
+		{
+			new (ClaimTypes.NameIdentifier, cookie)
+		}
+	});
 });
-app.MapGet("/login-admin", async ([FromServices]IHubContextStore store) => await store.AdminHubContext.NegotiateAsync()).RequireAuthorization();
+app.MapGet("/login-admin", async ([FromServices] IHubContextStore store) => await store.AdminHubContext.NegotiateAsync()).RequireAuthorization();
+app.MapGet("/chat-history/{userId}", async ([FromRoute] string userId, [FromServices] IChatService service) => await service.GetHistory(userId)).RequireAuthorization();
+app.MapGet("/chat-history", async ([FromServices] IChatService service, HttpRequest request, HttpResponse response) =>
+{
+	var userId = request.EnsureUserCookie(response);
+	return await service.GetHistory(userId);
+});
 
 app.UseAzureSignalR(routes =>
 {
-    routes.MapHub<ChatHub>("/chat");
+	routes.MapHub<ChatHub>("/chat");
 });
 
 app.UseAzureSignalR(routes =>
 {
-    routes.MapHub<AdminHub>("/admin");
+	routes.MapHub<AdminHub>("/admin");
 });
 
 app.Run();

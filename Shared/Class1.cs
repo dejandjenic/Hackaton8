@@ -8,7 +8,7 @@ public class ChatUserEvent
 public class ChatUserEventMessage
 {
     public bool FromUser { get; set; }
-    public string Message { get; set; }
+    public string Text { get; set; }
     public string UserId { get; set; }
 }
 

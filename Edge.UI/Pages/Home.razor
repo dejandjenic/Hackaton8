@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using Edge.UI.Services
+@using Edge.UI.ApiClients
 @inject ChatService chatService;
+@inject BackendApiClient client;
 
 <PageTitle>Chat</PageTitle>
 
@@ -33,6 +35,9 @@
             Messages.Add(new ChatMessage(false,message));
             StateHasChanged();
         });
+        var historyMessages = await client.ChatHistoryMessages();
+        Messages = historyMessages;
+        StateHasChanged();
     }
     
     private async Task SendMessage()
