@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using Edge.UI.Services;
 
 namespace Edge.UI.ApiClients;
