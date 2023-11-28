@@ -4,9 +4,11 @@
 @using Microsoft.AspNetCore.Authorization
 @using Admin.UI.Services
 @using Shared
+@using Admin.UI.ApiClients
 @inject HttpClient Http
 @attribute [Authorize]
 @inject ChatService chatService;
+@inject BackendApiClient client;
 
 <PageTitle>Chat</PageTitle>
 
@@ -48,7 +50,8 @@ else
 		{
 			
 			chatService.Watch(id);
-			
+			//getHistory
+		    var historyMessages = await client.GetHistory(id);
 			var handler = await chatService.RegisterChatEventHandler((user) =>
 			{
 				Console.WriteLine(user);
@@ -59,7 +62,7 @@ else
 				}
 			});
 			
-			Ids.Add(id,(handler,new List<ChatUserEventMessage>()));
+			Ids.Add(id, (handler, historyMessages));
 			
 			StateHasChanged();
 		}

@@ -9,8 +9,8 @@ public class ChatService(IChatRepository chatRepository) : IChatService
         return await chatRepository.GetHistory(userId);
     }
 
-    public async Task SaveNewChatItem(string userId, string text, bool fromUser)
+    public async Task SaveNewChatItem(string userId, string text, bool fromUser, string role)
     {
-        await chatRepository.SaveNewChatItem(userId, text, fromUser);
+        await chatRepository.SaveNewChatItem(userId, text, fromUser, role);
     }
 }
