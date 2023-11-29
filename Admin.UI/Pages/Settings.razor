@@ -3,7 +3,9 @@
 @using Admin.UI.Services
 @using Shared
 @using System.Net.Mime
+@using Microsoft.AspNetCore.Authorization
 @inject BackendApiClient api
+@attribute [Authorize]
 @inject IToastService toastService
 @inject SettingsService settingsService
 @inject KnowledgeBaseSettingsService KnowledgeBaseSettingsService
@@ -21,26 +23,38 @@
     </TabPage>
     <TabPage Text="Knowledge base">
         <div class="row">
-            <div class="col-4">
-                <a href="javascript:void(0)" @onclick="() => { editPage = false;modal.Open(); }">add</a>
-                <ul class="pages">
-                    @foreach (var p in pages)
-                    {
-                        <li><span @onclick="async ()=> await SelectPage(p.Id)">@p.Name</span> <a @onclick="() => {newPageText=p.Name; selectedPageId=p.Id; editPage=true;modal.Open(); }">edit</a></li>
-                    }
-                </ul>
-            </div>
-            <div class="col-8">
-                @* @foreach (var line in lines) *@
-                @* { *@
-                @*     <input class="line" value="@line"/> *@
-                @* } *@
-                @* @if (!lines.Any() && !string.IsNullOrWhiteSpace(selectedPageId)) *@
-                @* { *@
-                @*     <input class="line" value=""/> *@
-                @* } *@
-                <Document Lines="@lines" Visible="@(!string.IsNullOrWhiteSpace(selectedPageId))" OnSave="OnSaveDocument"></Document>
-            </div>
+@if (!isLoading)
+{
+    <div class="col-2">
+        <a href="javascript:void(0)" @onclick="() => { modal.Open(); }">add</a>
+        <ul class="pages">
+            @foreach (var p in pages)
+            {
+                <li><span @onclick="async () => await SelectPage(p.Id, p.Name, p.Content)">@p.Name</span></li>
+            }
+        </ul>
+    </div>
+    <div class="col-10">
+        @* @foreach (var line in lines) *@
+        @* { *@
+        @*     <input class="line" value="@line"/> *@
+        @* } *@
+        @* @if (!lines.Any() && !string.IsNullOrWhiteSpace(selectedPageId)) *@
+        @* { *@
+        @*     <input class="line" value=""/> *@
+        @* } *@
+        <label>Name</label>
+        <input @bind=selectedPageName/><br/>
+        <label>Content</label>
+        <textarea @bind=selectedPageText style="width:100%" rows="20"></textarea>
+        <br/>
+        <button @onclick="SavePageContent" class="btn-primary">Save changes</button>
+    </div>
+}
+else
+{
+    <span>loading...</span>
+}
         </div>
     </TabPage>
 
@@ -64,19 +78,23 @@
 @code {
     private string botSettings;
     private string newPageText;
-    bool editPage = true;
     string selectedPageId;
+    string selectedPageText;
+    string selectedPageName;
+    bool isLoading = false;
 
-    string GetDialogTitle() => editPage?"Edit page":"Add new page";
+    string GetDialogTitle() => "Add new page";
     
     List<KnowledgeBasePage> pages = new();
-    List<KnowledgeBaseLine> lines = new();
     private Modal modal { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
+        isLoading = true;
         botSettings = await settingsService.GetBotSettings();
+        
         pages = await KnowledgeBaseSettingsService.GetPages();
+        isLoading = false;
     }
 
     private async Task SaveBotSettings()
@@ -89,28 +107,36 @@
     private async Task SavePage()
     {
         Console.WriteLine("save page");
-        if (editPage)
-        {
-            await KnowledgeBaseSettingsService.UpdatePage(selectedPageId,newPageText);
-        }
-        else
-        {
-            await KnowledgeBaseSettingsService.AddPage(newPageText);
-        }
+        
+        await KnowledgeBaseSettingsService.AddPage(newPageText,"");
+        
         newPageText = "";
+        isLoading = true;
         pages = await KnowledgeBaseSettingsService.GetPages();
+        isLoading = false;
         modal.Close();
     }
 
-    private async Task SelectPage(string id)
+    private async Task SelectPage(string id,string name,string content)
     {
+        Console.WriteLine(selectedPageId);
+        Console.WriteLine(selectedPageText);
+        Console.WriteLine(selectedPageName);
         selectedPageId = id;
-        lines = await KnowledgeBaseSettingsService.GetLines(id);
+        selectedPageName = name;
+        selectedPageText = content;
+        StateHasChanged();
     }
 
-    private async Task OnSaveDocument((List<KnowledgeBaseLine>, List<KnowledgeBaseLine>) obj)
+    private async Task SavePageContent()
     {
-        await KnowledgeBaseSettingsService.SetLines(obj.Item1, obj.Item2, selectedPageId);
+        await api.UpdatePage(selectedPageId, selectedPageName, selectedPageText);
+        toastService.ShowSuccess("Page saved");
+        isLoading = true;
+        StateHasChanged();
+        pages = await KnowledgeBaseSettingsService.GetPages();
+        isLoading = false;
+        StateHasChanged();
     }
 
 }

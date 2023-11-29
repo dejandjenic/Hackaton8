@@ -12,17 +12,43 @@ public class ChatUserEventMessage
     public string UserId { get; set; }
 }
 
-public record KnowledgeBasePage(string Name,string Id);
-
-public class KnowledgeBaseLine
+public class ChatUser
 {
-    public KnowledgeBaseLine(string text,string pageid,string id)
-    {
-        Text = text;
-        PageId = pageid;
-        Id = id;
-    }
-    public string Text { get; set; }
-    public string PageId { get; set; }
     public string Id { get; set; }
+    public bool Active { get; set; }
+    public DateTime FirstInteraction { get; set; }
+    public DateTime LastInteraction { get; set; }
+    public bool? ChatPaused { get; set; }
+    public string Type => nameof(ChatUser);
 }
+
+public class KnowledgeBasePage
+{
+    public string Name { get; set; }
+    public string Content { get; set; }
+    public string Id { get; set; }
+    public int TotalLines { get; set; }
+
+    public KnowledgeBasePage()
+    {
+        
+    }
+    
+    public KnowledgeBasePage(string name, string id,string content)
+    {
+        Name = name;
+        Id = id;
+        Content = content;
+    }
+    
+    public KnowledgeBasePage(string name, string id,string content,int lines)
+    {
+        Name = name;
+        Id = id;
+        Content = content;
+        TotalLines = lines;
+    }
+
+    public string Type => nameof(KnowledgeBasePage);
+}
+    

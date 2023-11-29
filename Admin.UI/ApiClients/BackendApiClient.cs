@@ -20,6 +20,21 @@ public class BackendApiClient(HttpClient httpClient)
 	{
 		return await httpClient.GetFromJsonAsync<LoginResponse>("/login-admin");
 	}
+	
+	public async Task AddPage(string id,string text,string content)
+	{
+		await httpClient.PostAsJsonAsync($"/pages",new KnowledgeBasePage(text,id,content));
+	}
+	
+	public async Task UpdatePage(string id,string text,string content)
+	{
+		await httpClient.PatchAsJsonAsync($"/pages/{id}",new KnowledgeBasePage(text,id,content));
+	}
+	
+	public async Task<List<KnowledgeBasePage>> GetPages()
+	{
+		return await httpClient.GetFromJsonAsync<List<KnowledgeBasePage>>("/pages");
+	}
 }
 
 public class LoginResponse
