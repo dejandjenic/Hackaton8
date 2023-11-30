@@ -90,6 +90,10 @@ app.MapGet("/pages", async ([FromServices]ISettingsService database) =>
 	return await database.GetPages();
 }).RequireAuthorization();
 
+app.MapGet("/settings", async ([FromServices]ISettingsService database) => await database.GetSettings()).RequireAuthorization();
+
+app.MapPost("/settings", async ([FromServices]ISettingsService database,[FromBody][AsParameters]ChatSettings settings) => await database.SaveSettings(settings)).RequireAuthorization();
+
 app.UseAzureSignalR(routes =>
 {
 	routes.MapHub<ChatHub>("/chat");

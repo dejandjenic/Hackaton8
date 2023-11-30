@@ -16,10 +16,17 @@
 
 <Tabs AllowTabPageRemoval="false">
     <TabPage Text="Bot settings">
-        <p>this settings are you when initializing bot and describing its use within the system.</p>
-        <textarea rows="20" style="width:100%" @bind="botSettings"/>
-        <br/>
-        <button class="btn-primary" @onclick="SaveBotSettings">Save</button>
+        @if (!isSettingsLoading)
+        {
+            <p>this settings are you when initializing bot and describing its use within the system.</p>
+            <textarea rows="20" style="width:100%" @bind="botSettings.Text"/>
+            <br/>
+            <button class="btn-primary" @onclick="SaveBotSettings">Save changes</button>
+        }
+        else
+        {
+            <span>loading...</span>
+        }
     </TabPage>
     <TabPage Text="Knowledge base">
         <div class="row">
@@ -35,14 +42,6 @@
         </ul>
     </div>
     <div class="col-10">
-        @* @foreach (var line in lines) *@
-        @* { *@
-        @*     <input class="line" value="@line"/> *@
-        @* } *@
-        @* @if (!lines.Any() && !string.IsNullOrWhiteSpace(selectedPageId)) *@
-        @* { *@
-        @*     <input class="line" value=""/> *@
-        @* } *@
         <label>Name</label>
         <input @bind=selectedPageName/><br/>
         <label>Content</label>
@@ -76,12 +75,13 @@ else
 </Modal>
 
 @code {
-    private string botSettings;
+    private ChatSettings botSettings=new();
     private string newPageText;
     string selectedPageId;
     string selectedPageText;
     string selectedPageName;
     bool isLoading = false;
+    bool isSettingsLoading = false;
 
     string GetDialogTitle() => "Add new page";
     
@@ -91,7 +91,9 @@ else
     protected async override Task OnInitializedAsync()
     {
         isLoading = true;
+        isSettingsLoading = true;
         botSettings = await settingsService.GetBotSettings();
+        isSettingsLoading = false;
         
         pages = await KnowledgeBaseSettingsService.GetPages();
         isLoading = false;

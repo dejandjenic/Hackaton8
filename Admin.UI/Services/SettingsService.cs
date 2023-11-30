@@ -1,14 +1,17 @@
+using Admin.UI.ApiClients;
+using Shared;
+
 namespace Admin.UI.Services;
 
-public class SettingsService
+public class SettingsService(BackendApiClient apiClient)
 {
-    public async Task SaveBotSettings(string text)
+    public async Task SaveBotSettings(ChatSettings settings)
     {
-
+        await apiClient.SaveSettings(settings);
     }
 
-    public async Task<string> GetBotSettings()
+    public async Task<ChatSettings> GetBotSettings()
     {
-        return String.Empty;
+        return await apiClient.GetSettings();
     }
 }

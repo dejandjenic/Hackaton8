@@ -35,6 +35,16 @@ public class BackendApiClient(HttpClient httpClient)
 	{
 		return await httpClient.GetFromJsonAsync<List<KnowledgeBasePage>>("/pages");
 	}
+	
+	public async Task SaveSettings(ChatSettings settings)
+	{
+		await httpClient.PostAsJsonAsync($"/settings",settings);
+	}
+	
+	public async Task<ChatSettings> GetSettings()
+	{
+		return await httpClient.GetFromJsonAsync<ChatSettings>($"/settings");
+	}
 }
 
 public class LoginResponse

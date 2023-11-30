@@ -8,6 +8,8 @@ namespace API.Services
 {
 	public interface ICosmosDbService
 	{
+		Task SaveSettings(ChatSettings content);
+		Task<ChatSettings> GetSettings();
 		Task CreateUser(string id);
 		Task UpdateUserLastInteraction(string id);
 		Task UpdateUserActive(string id,bool active);
@@ -25,6 +27,7 @@ namespace API.Services
 	{
 		private readonly Database _database;
 		private readonly string _cosmosDatabase = "hackaton";
+		private const string settingsId = "SETTINGS";
 
 		public CosmosDbService(AppSettings appSettings)
 		{
@@ -118,6 +121,39 @@ namespace API.Services
 				output.AddRange(results);
 			}
 			return output;
+		}
+
+		public async Task SaveSettings(ChatSettings content)
+		{
+			try
+			{
+				var container = await GetContainer();
+				PartitionKey partitionKey = new(settingsId);
+				await container.PatchItemAsync<ChatSettings>(settingsId, partitionKey, new List<PatchOperation>()
+				{
+					PatchOperation.Replace("/text", content.Text),
+				});
+			}
+			catch (Microsoft.Azure.Cosmos.CosmosException ex)
+			{
+				var container = await GetContainer();
+				PartitionKey partitionKey = new(settingsId);
+				await container.CreateItemAsync(content, partitionKey);
+			}
+		}
+
+		public async Task<ChatSettings> GetSettings()
+		{
+			try
+			{
+				PartitionKey partitionKey = new(settingsId);
+				var container = await GetContainer();
+				return await container.ReadItemAsync<ChatSettings>(settingsId, partitionKey);
+			}
+			catch
+			{
+				return null;
+			}
 		}
 
 		public async Task CreateUser(string id)
