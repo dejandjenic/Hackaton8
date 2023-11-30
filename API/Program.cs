@@ -102,7 +102,7 @@ app.MapPost("/pause-chat/{id}", async ([FromRoute] string id, [FromServices] ICo
 	{
 		UserId = id,
 		Name = activeUser.ChatName,
-		IsPaused = activeUser.ChatPaused
+		IsPaused = activeUser.ChatPaused.GetValueOrDefault(false)
 	});
 
 }).RequireAuthorization();

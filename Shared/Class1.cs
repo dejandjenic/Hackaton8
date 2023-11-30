@@ -21,7 +21,7 @@ public class ChatUser
     public DateTime FirstInteraction { get; set; }
     public DateTime LastInteraction { get; set; }
     public string ChatName { get; set; } = "New Chat";
-    public bool ChatPaused { get; set; } = false;
+    public bool? ChatPaused { get; set; } = false;
     public string Type => nameof(ChatUser);
 }
 

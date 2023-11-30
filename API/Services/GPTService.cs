@@ -61,7 +61,7 @@ public class GPTService : IGPTService
 		var history = await chatService.GetHistory(userId);
 		var activeUser = await cosmosDbService.GetActiveUser(userId);
 
-		var useRealChat = !activeUser.ChatPaused;
+		var useRealChat = !activeUser.ChatPaused.GetValueOrDefault(false);
 
 		// ISemanticTextMemory memory = new MemoryBuilder()
 		//     .WithLoggerFactory(LoggerFactory.Create(builder => builder.AddConsole()))
@@ -162,7 +162,7 @@ public class GPTService : IGPTService
 		{
 			UserId = userId,
 			Name = activeUser.ChatName,
-			IsPaused = activeUser.ChatPaused
+			IsPaused = activeUser.ChatPaused.GetValueOrDefault(false)
 		});
 		await adminHubManager.ChatUserEvent(userId, new ChatUserEventMessage
 		{
@@ -186,7 +186,7 @@ public class GPTService : IGPTService
 		{
 			UserId = userId,
 			Name = activeUser.ChatName,
-			IsPaused = activeUser.ChatPaused
+			IsPaused = activeUser.ChatPaused.GetValueOrDefault(false)
 		});
 
 		await adminHubManager.ChatUserEvent(userId, new ChatUserEventMessage
