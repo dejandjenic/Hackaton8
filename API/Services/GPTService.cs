@@ -63,34 +63,6 @@ public class GPTService : IGPTService
 
 		var useRealChat = !activeUser.ChatPaused.GetValueOrDefault(false);
 
-		// ISemanticTextMemory memory = new MemoryBuilder()
-		//     .WithLoggerFactory(LoggerFactory.Create(builder => builder.AddConsole()))
-		//     .WithMemoryStore(new AzureCognitiveSearchMemoryStore(acsEndpoint, acsApiKey))
-		//     .WithAzureOpenAITextEmbeddingGenerationService(
-		//         aoaiModel, aoaiEndpoint, aoaiApiKey)
-		//     .Build();
-		// IList<string> collections = await memory.GetCollectionsAsync();
-		//
-		// if (collections.Contains(collectionName))
-		// {
-		//     Console.WriteLine("Found database");
-		// }
-		// else
-		// {
-		//     using HttpClient client = new();
-		//     string s = await client.GetStringAsync(
-		//         "https://devblogs.microsoft.com/dotnet/performance_improvements_in_net_7");
-		//     List<string> paragraphs =
-		//         TextChunker.SplitPlainTextParagraphs(
-		//             TextChunker.SplitPlainTextLines(
-		//                 WebUtility.HtmlDecode(Regex.Replace(s, @"<[^>]+>|&nbsp;", "")),
-		//                 128),
-		//             1024);
-		//     for (int i = 0; i < paragraphs.Count; i++)
-		//         await memory.SaveInformationAsync(collectionName, paragraphs[i], $"paragraph{i}");
-		//     Console.WriteLine("Generated database");
-		// }
-
 		string acsEndpoint = appSettings.SearchEndpoint;
 		string acsApiKey = appSettings.SearchKey;
 		string collectionName = appSettings.SearchCollectionName;
@@ -101,9 +73,10 @@ public class GPTService : IGPTService
 		if (useRealChat)
 		{
 
+			var settings = await cosmosDbService.GetSettings();
 			var chatCompletionsOptions = new ChatCompletionsOptions();
 			chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System,
-				"You are an AI assistant that helps people find information."));
+				settings.Text));
 			foreach (var item in history)
 			{
 				chatCompletionsOptions.Messages.Add(new ChatMessage(
