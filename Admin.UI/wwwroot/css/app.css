@@ -17,7 +17,7 @@ a, .btn-link {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {
@@ -105,55 +105,56 @@ code {
 
 
 
-#messages{
-    list-style:none
+#messages {
+    list-style: none;
+    overflow-y: auto;
 }
 
-#messages li{
-    margin-top:10px;
-}
+    #messages li {
+        margin-top: 10px;
+    }
 
-#messages .user{
-    background-color: #e1fce8;
-    border-radius: 10px;
-    padding: 10px;
-}
+    #messages .user {
+        background-color: #e1fce8;
+        border-radius: 10px;
+        padding: 10px;
+    }
 
-#messages .system{
-    text-align: right;
-    background-color: #e1f0fc;
-    border-radius: 10px;
-    padding: 10px;
-}
+    #messages .system {
+        text-align: right;
+        background-color: #e1f0fc;
+        border-radius: 10px;
+        padding: 10px;
+    }
 
-.close{
+.close {
     width: 20px;
     margin-left: 20px;
 }
 
-.pages{
+.pages {
     list-style: none;
 }
 
-.pages li a{
-    display: none;
-}
+    .pages li a {
+        display: none;
+    }
 
-.pages li:hover a{
-    display: initial;
-    float: right;
-}
+    .pages li:hover a {
+        display: initial;
+        float: right;
+    }
 
-.line{
+.line {
     border: 0px;
     width: 100%;
 }
 
-.line:focus{
-    border: 1px solid gray;
-}
+    .line:focus {
+        border: 1px solid gray;
+    }
 
-.line-container{
+.line-container {
     border: 1px solid black;
     padding: 0px;
 }

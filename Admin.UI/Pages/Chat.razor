@@ -18,24 +18,26 @@
 }
 else
 {
-	<Tabs OnRemove="@OnRemove">
-		<TabPage Text="Active chats">
-			<ActiveChats OnSelect="OnSelect" Chats="Chats"></ActiveChats>
-		</TabPage>
-		@foreach (var chat in Ids.Keys)
-		{
-			<TabPage Text=@chat Id="@chat">
-				<ChatDetail Id=@chat data="@Ids[chat].Item2"></ChatDetail>
-			</TabPage>
-		}
+    <Tabs OnRemove="@OnRemove">
+        <TabPage Text="Active chats">
+            <ActiveChats OnSelect="OnSelect" Chats="Chats"></ActiveChats>
+        </TabPage>
+        @foreach (var chat in Ids.Keys)
+        {
+		
+            <TabPage Text=@chat Id="@chat">
+                <ChatDetail IsPaused=@Chats.First(x => x.UserId == chat).IsPaused Id=@chat data="@Ids[chat].Item2"></ChatDetail>
+            </TabPage>
+           
+        }
 
-	</Tabs>
+    </Tabs>
 }
 
 @code {
     
 	public Dictionary<string,(IDisposable,List<ChatUserEventMessage>)> Ids { get; set; } = new();
-
+ 
 	async Task OnRemove(string id)
 	{
 		var handler = Ids[id].Item1;
@@ -88,6 +90,14 @@ else
 				Chats.Add(user);
 				StateHasChanged();
 			}
+
+            var existingUser = Chats.FirstOrDefault(x => x.UserId == user.UserId);
+            if (existingUser is not null && (existingUser.Name != user.Name || existingUser.IsPaused != user.IsPaused))
+            {
+                Chats.Remove(existingUser);
+				Chats.Add(user);
+                StateHasChanged();
+            }
 		});
 		status = "";
 	}

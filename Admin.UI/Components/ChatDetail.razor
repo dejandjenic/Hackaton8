@@ -2,16 +2,27 @@
 @using Shared
 @using Admin.UI.ApiClients
 @inject BackendApiClient client;
+@inject ChatService chatService;
 
-<ul id="messages">
-@foreach (var it in data)
+@if (!IsPaused)
 {
-    <li class="@(it.FromUser?"user":"system")">
-        @it.Text
-    </li>
+    <button @onclick="PauseChat" class="send_button">Pause</button>
 }
+<ul id="messages">
+    @foreach (var it in data)
+    {
+        <li class="@(it.FromUser?"user":"system")">
+            @it.Text
+        </li>
+    }
 </ul>
-
+@if (IsPaused)
+{
+    <div class="question_section">
+        <textarea @bind="Text" placeholder="Type something ..." class="text_question"></textarea>
+        <button @onclick="SendMessage" class="send_button">send</button>
+    </div>
+}
 @code {
 
     [Parameter]
@@ -20,4 +31,20 @@
     [Parameter]
     public string Id { get; set; }
 
+    [Parameter]
+    public bool IsPaused { get; set; }
+    public string Text { get; set; }
+
+    private async Task SendMessage()
+    {
+        var text = Text;
+        Text = "";
+        chatService.Message(Id, text);
+    }
+
+    private async Task PauseChat()
+    {
+        await client.PauseChat(Id);
+        StateHasChanged();
+    }
 }

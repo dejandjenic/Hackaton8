@@ -3,6 +3,8 @@
 public class ChatUserEvent
 {
     public string UserId { get; set; }
+    public string Name { get; set; }
+    public bool IsPaused { get; set; }
 }
 
 public class ChatUserEventMessage
@@ -18,7 +20,8 @@ public class ChatUser
     public bool Active { get; set; }
     public DateTime FirstInteraction { get; set; }
     public DateTime LastInteraction { get; set; }
-    public bool? ChatPaused { get; set; }
+    public string ChatName { get; set; } = "New Chat";
+    public bool ChatPaused { get; set; } = false;
     public string Type => nameof(ChatUser);
 }
 
@@ -31,17 +34,17 @@ public class KnowledgeBasePage
 
     public KnowledgeBasePage()
     {
-        
+
     }
-    
-    public KnowledgeBasePage(string name, string id,string content)
+
+    public KnowledgeBasePage(string name, string id, string content)
     {
         Name = name;
         Id = id;
         Content = content;
     }
-    
-    public KnowledgeBasePage(string name, string id,string content,int lines)
+
+    public KnowledgeBasePage(string name, string id, string content, int lines)
     {
         Name = name;
         Id = id;
@@ -51,4 +54,3 @@ public class KnowledgeBasePage
 
     public string Type => nameof(KnowledgeBasePage);
 }
-    

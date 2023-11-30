@@ -47,9 +47,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 
-app.MapGet("/login", async ([FromServices] IHubContextStore store,[FromServices] ICosmosDbService database, HttpRequest request, HttpResponse response) =>
+app.MapGet("/login", async ([FromServices] IHubContextStore store, [FromServices] ICosmosDbService database, HttpRequest request, HttpResponse response) =>
 {
-	var (cookie,isNew) = request.EnsureUserCookie(response);
+	var (cookie, isNew) = request.EnsureUserCookie(response);
 	if (isNew)
 	{
 		await database.CreateUser(cookie);
@@ -66,28 +66,41 @@ app.MapGet("/login-admin", async ([FromServices] IHubContextStore store) => awai
 app.MapGet("/chat-history/{userId}", async ([FromRoute] string userId, [FromServices] IChatService service) => await service.GetHistory(userId)).RequireAuthorization();
 app.MapGet("/chat-history", async ([FromServices] IChatService service, HttpRequest request, HttpResponse response) =>
 {
-	var (userId,_) = request.EnsureUserCookie(response);
+	var (userId, _) = request.EnsureUserCookie(response);
 	return await service.GetHistory(userId);
 });
 
-app.MapPost("/pages", async ([AsParameters][FromBody]KnowledgeBasePage page,[FromServices]ISettingsService database) =>
+app.MapPost("/pages", async ([AsParameters][FromBody] KnowledgeBasePage page, [FromServices] ISettingsService database) =>
 {
-	await database.AddPage(page.Id, page.Name,page.Content);
+	await database.AddPage(page.Id, page.Name, page.Content);
 }).RequireAuthorization();
 
-app.MapPatch("/pages/{id}", async ([FromRoute]string id,[AsParameters][FromBody]KnowledgeBasePage page,[FromServices]ISettingsService database) =>
+app.MapPatch("/pages/{id}", async ([FromRoute] string id, [AsParameters][FromBody] KnowledgeBasePage page, [FromServices] ISettingsService database) =>
 {
-	await database.UpdatePage(id, page.Name,page.Content);
+	await database.UpdatePage(id, page.Name, page.Content);
 }).RequireAuthorization();
 
-app.MapDelete("/pages/{id}", async ([FromRoute]string id,[FromServices]ISettingsService database) =>
+app.MapDelete("/pages/{id}", async ([FromRoute] string id, [FromServices] ISettingsService database) =>
 {
 	await database.DeletePage(id);
 }).RequireAuthorization();
 
-app.MapGet("/pages", async ([FromServices]ISettingsService database) =>
+app.MapGet("/pages", async ([FromServices] ISettingsService database) =>
 {
 	return await database.GetPages();
+}).RequireAuthorization();
+
+app.MapPost("/pause-chat/{id}", async ([FromRoute] string id, [FromServices] ICosmosDbService database, [FromServices] IAdminHubManager adminHubManager) =>
+{
+	await database.UpdateUserChatPaused(id, true);
+	var activeUser = await database.GetActiveUser(id);
+	await adminHubManager.ChatEvent(new ChatUserEvent
+	{
+		UserId = id,
+		Name = activeUser.ChatName,
+		IsPaused = activeUser.ChatPaused
+	});
+
 }).RequireAuthorization();
 
 app.UseAzureSignalR(routes =>
