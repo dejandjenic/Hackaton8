@@ -4,7 +4,7 @@ using Shared;
 
 namespace API.Services;
 
-public class AdminHubManager(IHubContext<AdminHub,IAdminHub> context,IHubContextStore store):IAdminHubManager
+public class AdminHubManager(IHubContext<AdminHub, IAdminHub> context, IHubContextStore store) : IAdminHubManager
 {
     public async Task ChatEvent(ChatUserEvent chatEvent)
     {
@@ -15,5 +15,10 @@ public class AdminHubManager(IHubContext<AdminHub,IAdminHub> context,IHubContext
     public async Task ChatUserEvent(string userId, ChatUserEventMessage message)
     {
         await context.Clients.Group(userId).ChatEvent(message);
+    }
+
+    public async Task NeedAssistantEvent(string userId)
+    {
+        await context.Clients.All.NeedAssistant(userId);
     }
 }

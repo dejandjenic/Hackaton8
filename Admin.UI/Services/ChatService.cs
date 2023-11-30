@@ -19,6 +19,11 @@ public class ChatService(ConnectionService connectionService)
 		return connectionService.Bind("NewChatEvent", handler);
 	}
 
+	public async Task<IDisposable> RegisterNeedAssistantEventHandler(Action<string> handler)
+	{
+		return connectionService.Bind("NeedAssistant", handler);
+	}
+
 	public void Watch(string userId)
 	{
 		connectionService.Send("Watch", userId);

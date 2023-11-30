@@ -5,6 +5,8 @@
 @using Admin.UI.Services
 @using Shared
 @using Admin.UI.ApiClients
+@using System.Runtime.CompilerServices
+@using System.Dynamic
 @inject HttpClient Http
 @attribute [Authorize]
 @inject ChatService chatService;
@@ -20,7 +22,7 @@ else
 {
     <Tabs OnRemove="@OnRemove">
         <TabPage Text="Active chats">
-            <ActiveChats OnSelect="OnSelect" Chats="Chats"></ActiveChats>
+            <ActiveChats UserIdsForAssistance="@needAssistants.Keys.ToList()" OnSelect="OnSelect" Chats="Chats"></ActiveChats>
         </TabPage>
         @foreach (var chat in Ids.Keys)
         {
@@ -32,7 +34,18 @@ else
         }
 
     </Tabs>
+	@foreach(var item in needAssistants)
+    {
+        @if (item.Value.Item1)
+        {
+            <div class="alert alert-danger" role="alert">
+                @item.Value.Item2
+            </div>
+        }
+    }
+   
 }
+
 
 @code {
     
@@ -48,6 +61,13 @@ else
 
 	async Task OnSelect(string id)
 	{
+		if (needAssistants.ContainsKey(id))
+		{
+		    var message = needAssistants[id].Item2;
+			needAssistants[id] = (false, message);
+	        StateHasChanged();
+	    }
+
 		if (!Ids.ContainsKey(id))
 		{
 			
@@ -73,8 +93,11 @@ else
 	private List<ChatUserEvent> Chats=new();
 	string status = "";
 	IDisposable mainHandler;
+    IDisposable assistantHandler;
 
-	protected async override Task OnInitializedAsync()
+    private Dictionary<string, (bool, string)> needAssistants = new();
+
+    protected async override Task OnInitializedAsync()
 	{
 		NavigationManager.LocationChanged += LocationChanged;
 		status = "Connecting to messenger ...";
@@ -104,6 +127,13 @@ else
                 StateHasChanged();
             }
 		});
+
+	    assistantHandler = await chatService.RegisterNeedAssistantEventHandler((userId) =>
+	    {
+            var warningMessage = $"Warning. User: {userId} needs your help";
+            needAssistants.Add(userId, (true, warningMessage));
+            StateHasChanged();
+	    });
 		status = "";
 	}
 
@@ -118,6 +148,7 @@ else
 	// Unsubscribe from the event when our component is disposed
 		NavigationManager.LocationChanged -= LocationChanged;
 		mainHandler.Dispose();
+	    assistantHandler.Dispose();
 		foreach (var id in Ids)
 		{
 			id.Value.Item1.Dispose();

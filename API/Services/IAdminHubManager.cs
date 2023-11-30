@@ -6,4 +6,5 @@ public interface IAdminHubManager
 {
     Task ChatEvent(ChatUserEvent chatEvent);
     Task ChatUserEvent(string userId, ChatUserEventMessage message);
+    Task NeedAssistantEvent(string userId);
 }
