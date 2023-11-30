@@ -74,7 +74,10 @@ public class GPTService : IGPTService
 		{
 
 			var settings = await cosmosDbService.GetSettings();
-			var chatCompletionsOptions = new ChatCompletionsOptions();
+			var chatCompletionsOptions = new ChatCompletionsOptions()
+			{
+				Temperature = 0.0f,
+			};
 			chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.System,
 				settings.Text));
 			foreach (var item in history)
@@ -99,12 +102,13 @@ public class GPTService : IGPTService
 			};
 
 			var question = message;
-
+			
 			chatCompletionsOptions.Messages.Add(new ChatMessage(ChatRole.User, question));
 			await chatService.SaveNewChatItem(userId, question, true, ChatRole.User.ToString());
 			await SummarizeAfterFiveItems(userId);
 
 			builder.Clear();
+			
 			var response = await aoai.GetChatCompletionsStreamingAsync(aoaiModel, chatCompletionsOptions);
 
 			await foreach (StreamingChatChoice choice in response.Value.GetChoicesStreaming())
