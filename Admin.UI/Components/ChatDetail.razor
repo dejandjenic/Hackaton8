@@ -8,6 +8,10 @@
 {
     <button @onclick="PauseChat" class="send_button">Pause</button>
 }
+else
+{
+    <button @onclick="ResumeChat" class="send_button">Resume as AI</button>
+}
 <ul id="messages">
     @foreach (var it in data)
     {
@@ -44,6 +48,11 @@
 
     private async Task PauseChat()
     {
-        await client.PauseChat(Id);
+        await client.PauseChat(Id, true);
+    }
+
+    private async Task ResumeChat()
+    {
+        await client.PauseChat(Id, false);
     }
 }

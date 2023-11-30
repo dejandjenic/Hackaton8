@@ -39,8 +39,8 @@ app.UseCors();
 
 if (app.Environment.IsDevelopment())
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseAuthentication();
@@ -49,72 +49,72 @@ app.UseAuthorization();
 
 app.MapGet("/login", async ([FromServices] IHubContextStore store, [FromServices] ICosmosDbService database, HttpRequest request, HttpResponse response) =>
 {
-	var (cookie, isNew) = request.EnsureUserCookie(response);
-	if (isNew)
-	{
-		await database.CreateUser(cookie);
-	}
-	return await store.ChatHubContext.NegotiateAsync(new NegotiationOptions()
-	{
-		Claims = new List<Claim>()
-		{
-			new (ClaimTypes.NameIdentifier, cookie)
-		}
-	});
+    var (cookie, isNew) = request.EnsureUserCookie(response);
+    if (isNew)
+    {
+        await database.CreateUser(cookie);
+    }
+    return await store.ChatHubContext.NegotiateAsync(new NegotiationOptions()
+    {
+        Claims = new List<Claim>()
+        {
+            new (ClaimTypes.NameIdentifier, cookie)
+        }
+    });
 });
 app.MapGet("/login-admin", async ([FromServices] IHubContextStore store) => await store.AdminHubContext.NegotiateAsync()).RequireAuthorization();
 app.MapGet("/chat-history/{userId}", async ([FromRoute] string userId, [FromServices] IChatService service) => await service.GetHistory(userId)).RequireAuthorization();
 app.MapGet("/chat-history", async ([FromServices] IChatService service, HttpRequest request, HttpResponse response) =>
 {
-	var (userId, _) = request.EnsureUserCookie(response);
-	return await service.GetHistory(userId);
+    var (userId, _) = request.EnsureUserCookie(response);
+    return await service.GetHistory(userId);
 });
 
 app.MapPost("/pages", async ([AsParameters][FromBody] KnowledgeBasePage page, [FromServices] ISettingsService database) =>
 {
-	await database.AddPage(page.Id, page.Name, page.Content);
+    await database.AddPage(page.Id, page.Name, page.Content);
 }).RequireAuthorization();
 
 app.MapPatch("/pages/{id}", async ([FromRoute] string id, [AsParameters][FromBody] KnowledgeBasePage page, [FromServices] ISettingsService database) =>
 {
-	await database.UpdatePage(id, page.Name, page.Content);
+    await database.UpdatePage(id, page.Name, page.Content);
 }).RequireAuthorization();
 
 app.MapDelete("/pages/{id}", async ([FromRoute] string id, [FromServices] ISettingsService database) =>
 {
-	await database.DeletePage(id);
+    await database.DeletePage(id);
 }).RequireAuthorization();
 
 app.MapGet("/pages", async ([FromServices] ISettingsService database) =>
 {
-	return await database.GetPages();
+    return await database.GetPages();
 }).RequireAuthorization();
 
-app.MapGet("/settings", async ([FromServices]ISettingsService database) => await database.GetSettings()).RequireAuthorization();
+app.MapGet("/settings", async ([FromServices] ISettingsService database) => await database.GetSettings()).RequireAuthorization();
 
-app.MapPost("/settings", async ([FromServices]ISettingsService database,[FromBody][AsParameters]ChatSettings settings) => await database.SaveSettings(settings)).RequireAuthorization();
+app.MapPost("/settings", async ([FromServices] ISettingsService database, [FromBody][AsParameters] ChatSettings settings) => await database.SaveSettings(settings)).RequireAuthorization();
 
-app.MapPost("/pause-chat/{id}", async ([FromRoute] string id, [FromServices] ICosmosDbService database, [FromServices] IAdminHubManager adminHubManager) =>
+app.MapPost("/pause-chat/{id}/{pause}", async ([FromRoute] string id, [FromRoute] bool pause, [FromServices] ICosmosDbService database, [FromServices] IAdminHubManager adminHubManager) =>
 {
-	await database.UpdateUserChatPaused(id, true);
-	var activeUser = await database.GetActiveUser(id);
-	await adminHubManager.ChatEvent(new ChatUserEvent
-	{
-		UserId = id,
-		Name = activeUser.ChatName,
-		IsPaused = activeUser.ChatPaused.GetValueOrDefault(false)
-	});
+    await database.UpdateUserChatPaused(id, pause);
+    var activeUser = await database.GetActiveUser(id);
+    await adminHubManager.ChatEvent(new ChatUserEvent
+    {
+        UserId = id,
+        Name = activeUser.ChatName,
+        IsPaused = activeUser.ChatPaused.GetValueOrDefault(false)
+    });
 
 }).RequireAuthorization();
 
 app.UseAzureSignalR(routes =>
 {
-	routes.MapHub<ChatHub>("/chat");
+    routes.MapHub<ChatHub>("/chat");
 });
 
 app.UseAzureSignalR(routes =>
 {
-	routes.MapHub<AdminHub>("/admin");
+    routes.MapHub<AdminHub>("/admin");
 });
 
 app.Run();
