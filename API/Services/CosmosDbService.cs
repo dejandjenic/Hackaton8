@@ -230,15 +230,6 @@ namespace API.Services
 			});
 		}
 
-		public async Task UpdateUserChatName(string id, string name)
-		{
-			var container = await GetContainer();
-			PartitionKey partitionKey = new(id);
-			await container.PatchItemAsync<ChatUser>(id, partitionKey, new List<PatchOperation>()
-			{
-				PatchOperation.Replace("/chatName", name),
-			});
-		}
 		public async Task<KnowledgeBasePage> GetPage(string id)
 		{
 			var container = await GetContainer();
