@@ -49,6 +49,11 @@ public class BackendApiClient(HttpClient httpClient)
     {
         await httpClient.PostAsJsonAsync($"/pause-chat/{id}/{pause}", new object());
     }
+
+    public async Task<List<ChatUser>> GetActiveUsers()
+    {
+        return await httpClient.GetFromJsonAsync<List<ChatUser>>($"/active-users");
+    }
 }
 
 public class LoginResponse

@@ -80,6 +80,11 @@ else
 		status = "Connecting to messenger ...";
 		
 		await chatService.Init();
+
+		//get active users 
+		Chats = (await client.GetActiveUsers())
+	        .Select(x => new ChatUserEvent() { IsPaused = x.ChatPaused.GetValueOrDefault(false), Name = x.ChatName, UserId = x.Id }).ToList();
+
 		status = "registering events ...";
 		mainHandler = await chatService.RegisterNewChatEventHandler((user) =>
 		{

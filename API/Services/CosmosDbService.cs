@@ -109,7 +109,7 @@ namespace API.Services
 		public async Task<List<ChatUser>> GetActiveUsers()
 		{
 			var container = await GetContainer();
-			QueryDefinition query = new QueryDefinition("SELECT DISTINCT * FROM c WHERE c.type = @type AND c.Active = @active")
+			QueryDefinition query = new QueryDefinition("SELECT DISTINCT * FROM c WHERE c.type = @type AND c.active = @active")
 					.WithParameter("@type", nameof(ChatUser))
 					.WithParameter("@active", true)
 				;

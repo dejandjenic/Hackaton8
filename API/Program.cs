@@ -107,6 +107,8 @@ app.MapPost("/pause-chat/{id}/{pause}", async ([FromRoute] string id, [FromRoute
 
 }).RequireAuthorization();
 
+app.MapGet("/active-users", async ([FromServices] ICosmosDbService database) => await database.GetActiveUsers()).RequireAuthorization();
+
 app.UseAzureSignalR(routes =>
 {
     routes.MapHub<ChatHub>("/chat");
