@@ -8,6 +8,8 @@ public interface ISettingsService
     Task DeletePage(string id);
     Task UpdatePage(string id, string text,string content);
     Task<List<KnowledgeBasePage>> GetPages();
+    Task SaveSettings(ChatSettings content);
+    Task<ChatSettings> GetSettings();
 }
 public class SettingsService(ICosmosDbService database,IAISearchService searchService,ITextService textService):ISettingsService
 {
@@ -33,4 +35,23 @@ public class SettingsService(ICosmosDbService database,IAISearchService searchSe
         return await database.GetPages();
     }
 
+    public async Task SaveSettings(ChatSettings content)
+    {
+        await database.SaveSettings(content);
+    }
+
+    public async Task<ChatSettings> GetSettings()
+    {
+        var settings = await database.GetSettings();
+        if (settings == null)
+        {
+            return new ChatSettings()
+            {
+                Id = "SETTINGS",
+                Text = ""
+            };
+        }
+
+        return settings;
+    }
 }

@@ -1,0 +1,11 @@
+@if (Visible)
+{
+    <div class="backdrop">
+        <Loading IsLoading="true"></Loading>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool Visible { get; set; }
+}

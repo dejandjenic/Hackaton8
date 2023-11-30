@@ -10,51 +10,42 @@
 @inject SettingsService settingsService
 @inject KnowledgeBaseSettingsService KnowledgeBaseSettingsService
 
-<PageTitle>Counter</PageTitle>
+<PageTitle>Settings</PageTitle>
 
 <h1>Settings</h1>
 
+<BackDrop Visible="backDropVisible"></BackDrop>
+
 <Tabs AllowTabPageRemoval="false">
     <TabPage Text="Bot settings">
-        <p>this settings are you when initializing bot and describing its use within the system.</p>
-        <textarea rows="20" style="width:100%" @bind="botSettings"/>
-        <br/>
-        <button class="btn-primary" @onclick="SaveBotSettings">Save</button>
+        <Loading IsLoading="@isSettingsLoading">
+            <p>this settings are you when initializing bot and describing its use within the system.</p>
+            <textarea rows="20" style="width:100%" @bind="botSettings.Text"/>
+            <br/>
+            <button class="btn-primary" @onclick="SaveBotSettings">Save changes</button>
+        </Loading>
     </TabPage>
     <TabPage Text="Knowledge base">
         <div class="row">
-@if (!isLoading)
-{
-    <div class="col-2">
-        <a href="javascript:void(0)" @onclick="() => { modal.Open(); }">add</a>
-        <ul class="pages">
-            @foreach (var p in pages)
-            {
-                <li><span @onclick="async () => await SelectPage(p.Id, p.Name, p.Content)">@p.Name</span></li>
-            }
-        </ul>
-    </div>
-    <div class="col-10">
-        @* @foreach (var line in lines) *@
-        @* { *@
-        @*     <input class="line" value="@line"/> *@
-        @* } *@
-        @* @if (!lines.Any() && !string.IsNullOrWhiteSpace(selectedPageId)) *@
-        @* { *@
-        @*     <input class="line" value=""/> *@
-        @* } *@
-        <label>Name</label>
-        <input @bind=selectedPageName/><br/>
-        <label>Content</label>
-        <textarea @bind=selectedPageText style="width:100%" rows="20"></textarea>
-        <br/>
-        <button @onclick="SavePageContent" class="btn-primary">Save changes</button>
-    </div>
-}
-else
-{
-    <span>loading...</span>
-}
+            <Loading IsLoading="@isLoading">
+                <div class="col-2">
+                        <a href="javascript:void(0)" @onclick="() => { modal.Open(); }">add</a>
+                        <ul class="pages">
+                            @foreach (var p in pages)
+                            {
+                                <li><span @onclick="async () => await SelectPage(p.Id, p.Name, p.Content)">@p.Name</span></li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-10">
+                        <label>Name</label>
+                        <input @bind=selectedPageName/><br/>
+                        <label>Content</label>
+                        <textarea @bind=selectedPageText style="width:100%" rows="20"></textarea>
+                        <br/>
+                        <button @onclick="SavePageContent" class="btn-primary">Save changes</button>
+                    </div>
+            </Loading>
         </div>
     </TabPage>
 
@@ -76,12 +67,14 @@ else
 </Modal>
 
 @code {
-    private string botSettings;
+    private ChatSettings botSettings=new();
     private string newPageText;
     string selectedPageId;
     string selectedPageText;
     string selectedPageName;
     bool isLoading = false;
+    bool isSettingsLoading = false;
+    bool backDropVisible;
 
     string GetDialogTitle() => "Add new page";
     
@@ -91,7 +84,9 @@ else
     protected async override Task OnInitializedAsync()
     {
         isLoading = true;
+        isSettingsLoading = true;
         botSettings = await settingsService.GetBotSettings();
+        isSettingsLoading = false;
         
         pages = await KnowledgeBaseSettingsService.GetPages();
         isLoading = false;
@@ -100,7 +95,11 @@ else
     private async Task SaveBotSettings()
     {
         Console.WriteLine($"saving settings {botSettings}");
+        backDropVisible = true;
+        StateHasChanged();
         await settingsService.SaveBotSettings(botSettings);
+        backDropVisible = false;
+        StateHasChanged();
         toastService.ShowSuccess("settings saved");
     }
 
@@ -108,7 +107,11 @@ else
     {
         Console.WriteLine("save page");
         
+        backDropVisible = true;
+        StateHasChanged();
         await KnowledgeBaseSettingsService.AddPage(newPageText,"");
+        backDropVisible = false;
+        StateHasChanged();
         
         newPageText = "";
         isLoading = true;
@@ -130,7 +133,11 @@ else
 
     private async Task SavePageContent()
     {
+        backDropVisible = true;
+        StateHasChanged();
         await api.UpdatePage(selectedPageId, selectedPageName, selectedPageText);
+        backDropVisible = false;
+        StateHasChanged();
         toastService.ShowSuccess("Page saved");
         isLoading = true;
         StateHasChanged();
