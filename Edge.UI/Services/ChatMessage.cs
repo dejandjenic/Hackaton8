@@ -1,3 +1,3 @@
 namespace Edge.UI.Services;
 
-public record ChatMessage(bool FromUser, string Text);
+public record ChatMessage(bool FromUser, string Text, DateTime Date);

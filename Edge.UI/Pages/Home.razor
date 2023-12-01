@@ -11,8 +11,20 @@
         @foreach (var message in Messages)
         {
             <li class="@(message.FromUser ? "user" : "system")">
-            
-                @message.Text
+                <div class="msg_info">
+                    <div class="msg_info_name">@(message.FromUser ? "You" : "Assistant")
+
+                    </div>
+             
+                    <div class="msg_info_name">
+                        @message.Date.ToString("dd MMM hh:mm")
+
+                    </div>
+                </div>
+
+                <div class="msg_text">
+                    @message.Text
+                </div>
             </li>
         }
     </ul>
@@ -32,7 +44,7 @@
         await chatService.Init();
         await chatService.RegisterGptHandler((message) =>
         {
-            Messages.Add(new ChatMessage(false,message));
+            Messages.Add(new ChatMessage(false,message, DateTime.Now));
             StateHasChanged();
         });
         var historyMessages = await client.ChatHistoryMessages();
@@ -44,7 +56,7 @@
     {
         var text = Text;
         Text = "";
-        Messages.Add(new ChatMessage(true,text));
+        Messages.Add(new ChatMessage(true, text, DateTime.Now));
         await chatService.SendMessage(text);
     }
     
