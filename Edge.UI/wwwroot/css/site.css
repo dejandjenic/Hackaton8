@@ -80,6 +80,7 @@
     cursor: pointer;
     text-transform: uppercase;
     height: 60%;
+    width: 10%;
 }
 
     .send_button:hover {
