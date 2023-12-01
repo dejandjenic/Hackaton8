@@ -8,6 +8,7 @@ using Azure;
 using Azure.AI.OpenAI;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 using Microsoft.SemanticKernel.Connectors.Memory.AzureCognitiveSearch;
 using Microsoft.SemanticKernel.Memory;
@@ -126,7 +127,7 @@ public class GPTService : IGPTService
             }
             catch (Exception e)
             {
-                answer = "Waiting to process ...";
+                answer = "please wait a second";
                 await cosmosDbService.UpdateUserChatPaused(userId, true); //paused chat
                 activeUser = await cosmosDbService.GetActiveUser(userId);
                 await adminHubManager.NeedAssistantEvent(userId);
@@ -135,29 +136,32 @@ public class GPTService : IGPTService
         }
         else
         {
-            answer = "...";
+            answer = "";
         }
 
-
-        await chatService.SaveNewChatItem(userId, answer, false, ChatRole.Assistant.ToString());
-
-        await userHubManager.Respond(userId, answer);
-
-        if (await SummarizeAfterFiveItems(userId))
-            activeUser = await cosmosDbService.GetActiveUser(userId); //if chat name updated, get updated user
-
-        await adminHubManager.ChatEvent(new ChatUserEvent
+        if (!string.IsNullOrWhiteSpace(answer))
         {
-            UserId = userId,
-            Name = activeUser.ChatName,
-            IsPaused = activeUser.ChatPaused.GetValueOrDefault(false)
-        });
-        await adminHubManager.ChatUserEvent(userId, new ChatUserEventMessage
-        {
-            Text = answer,
-            FromUser = false,
-            UserId = userId,
-        });
+
+            await chatService.SaveNewChatItem(userId, answer, false, ChatRole.Assistant.ToString());
+
+            await userHubManager.Respond(userId, answer);
+
+            if (await SummarizeAfterFiveItems(userId))
+                activeUser = await cosmosDbService.GetActiveUser(userId); //if chat name updated, get updated user
+
+            await adminHubManager.ChatEvent(new ChatUserEvent
+            {
+                UserId = userId,
+                Name = activeUser.ChatName,
+                IsPaused = activeUser.ChatPaused.GetValueOrDefault(false)
+            });
+            await adminHubManager.ChatUserEvent(userId, new ChatUserEventMessage
+            {
+                Text = answer,
+                FromUser = false,
+                UserId = userId,
+            });
+        }
     }
 
     public async Task RespondAsAdmin(string userId, string answer)
