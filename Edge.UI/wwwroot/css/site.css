@@ -1,6 +1,6 @@
 ﻿#header_chat {
     color: white;
-    background-color: rgba(11,13,33,1);
+    background-color: #2e9465;
     padding: 8px;
     display: flex;
     align-items: center;
@@ -10,10 +10,13 @@
     height: 10vh;
 }
 
-h1 {
-    font-size: 20px;
-    margin-top: revert;
-}
+    #header_chat h1 {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 34px;
+        font-weight: 300;
+        line-height: 40px;
+        margin: revert;
+    }
 
 #sidebar_chat {
     background: rgb(11,13,33);
@@ -25,7 +28,6 @@ h1 {
     width: 100%;
     height: 90vh;
     flex-direction: column;
-    background-color: whitesmoke;
 }
 
 .chat_messages {
@@ -62,7 +64,7 @@ h1 {
 
 .send_button {
     color: white;
-    background-color: #45496d;
+    background-color: #2e9465;
     font-weight: bolder;
     margin-right: 10px;
     margin-left: 10px;
@@ -81,7 +83,7 @@ h1 {
 }
 
     .send_button:hover {
-        background-color: rgba(22,26,66,1);
+        background-color: #0f653e;
         color: white;
     }
 
@@ -135,6 +137,7 @@ h1 {
 
     #messages .msg_info_name {
         font-weight: bolder;
+        font-size: 14px;
     }
 
     #messages .msg_text {
@@ -142,11 +145,10 @@ h1 {
         padding: 10px;
         padding-top: 2px;
         color: white;
+        font-size: 18px;
     }
 
 
 article#chat {
     padding: 0px !important;
 }
-
-
