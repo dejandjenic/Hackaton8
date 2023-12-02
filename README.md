@@ -2,6 +2,26 @@
 
 ## Description
 
+The system is intended to be a chat bot which main purpose is to provide support for people with mental health issues and to prevet suicide.
+
+The system is organized as client application developed with blazor wasm, admin application also developed with blazor wasm and api application developed with dotnet 8 minimal api.
+
+SignalR is used to provide realtime notifications wbout the system.
+
+The system is supervised by trained professionals which at any moment can stop response generation from AI bot and manually take over.
+
+The system has built in editor for system prompt settings as well as document used to augment response from AI.
+Those documents are automatically synced with Azure AI Search after successfull saving in persistance layer. We hope that with providing this functionality trained professionals can augment behavior of AI bot.
+
+SignalR provides realtime updates, meaning that every event is automatically reflected on Admin screens. Starting new chat from a user, user messages and AI responses as well as potential risk detection by AI bot are in realtime shown to trained professional which can then react upon it.
+
+User is tracked by cookie and every time user start conversation his history from previous conversations is loaded both on user and admin screen. History of conversation is also sent as prompt to AI bot so it has more context about the user.
+
+Admin application and API portion of admin application is protected by Azure B2C authentication and authorization.
+
+System is also monitored with AppInsight.
+
+System is configured to be deployed to Azure after push to main branch.
 
 
 ## Deployment
@@ -25,6 +45,7 @@ As shown on diagram bellow system heavily integrated with Azure and services pro
 7. SignalR - used to provided realtime notifications
 8. AppServices - ysed to host deployment of API
 9. Static Pages - used to host EDGE.UI and ADMIN.UI
+
 
 
 
