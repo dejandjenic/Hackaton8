@@ -10,6 +10,29 @@ a, .btn-link {
     color: #0071c1;
 }
 
+h1 {
+    font-family: 'Enriqueta', arial, serif;
+    line-height: 1.25;
+    margin: 0 0 10px;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+p {
+    padding: 15px;
+    color: #41464b;
+    font-family: "Helvetica Neue",Arial,sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.5625;
+    text-transform: uppercase;
+}
+
+.btn-group .btn {
+    margin: 5px;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;
@@ -102,38 +125,24 @@ code {
     color: #c02d76;
 }
 
-
-
-
-#messages {
-    list-style: none;
-    overflow-y: auto;
-}
-
-    #messages li {
-        margin-top: 10px;
-    }
-
-    #messages .user {
-        background-color: #e1fce8;
-        border-radius: 10px;
-        padding: 10px;
-    }
-
-    #messages .system {
-        text-align: right;
-        background-color: #e1f0fc;
-        border-radius: 10px;
-        padding: 10px;
-    }
-
 .close {
-    width: 20px;
-    margin-left: 20px;
+    width: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 5px;
+    position: absolute;
+    top: 2px;
+    right: 2px;
 }
+
 
 .pages {
-    list-style: none;
+    list-style: outside;
+    cursor: pointer;
+    text-transform: capitalize;
+    color: darkorchid;
 }
 
     .pages li a {
@@ -174,6 +183,7 @@ code {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
@@ -189,7 +199,7 @@ code {
     opacity: 0.5;
 }
 
-.loaderParent{
+.loaderParent {
     width: 80%;
     height: 80%;
     position: absolute;
@@ -197,3 +207,34 @@ code {
     display: flex;
     justify-content: center;
 }
+
+#chats {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+    #chats td, #chats th {
+        border: 1px solid #dee2e6;
+        padding: 8px;
+    }
+
+    #chats th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #fff;
+        color: #41464b;
+    }
+
+    #chats .user_info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    #chats svg {
+        margin-right: 5px;
+    }

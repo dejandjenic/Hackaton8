@@ -4,22 +4,37 @@
 @inject BackendApiClient client;
 @inject ChatService chatService;
 
+<div class="chat_detail">
 @if (!IsPaused)
 {
-    <button @onclick="PauseChat" class="send_button">Pause</button>
+    <div class="ai_button">
+        <button @onclick="PauseChat" id="pause_bttn" class="send_button">Pause</button>
+    </div>
 }
 else
 {
-    <button @onclick="ResumeChat" class="send_button">Resume as AI</button>
+    <div class="ai_button">
+        <button @onclick="ResumeChat" class="send_button">Resume as AI</button>
+    </div>
 }
-<ul id="messages">
-    @foreach (var it in data)
-    {
-        <li class="@(it.FromUser?"user":"system")">
-            @it.Text
-        </li>
-    }
-</ul>
+    <div class="chat_messages">
+        <ul id="messages">
+            @foreach (var it in data)
+            {
+                <li class="@(it.FromUser?"user":"system")">
+                    <div class="msg_info">
+                        <div class="msg_info_name">@(it.FromUser ? "User: "+@it.UserId : "Assistant")
+
+                        </div>
+                    </div>
+
+                    <div class="msg_text">
+                        @it.Text
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
 @if (IsPaused)
 {
     <div class="question_section">
@@ -27,6 +42,7 @@ else
         <button @onclick="SendMessage" class="send_button">send</button>
     </div>
 }
+</div>
 @code {
 
     [Parameter]

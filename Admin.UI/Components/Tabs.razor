@@ -7,10 +7,12 @@
             <span
                 class="btn @GetButtonClass(tabPage)"
                 @onclick=@(() => ActivatePage(tabPage))>
+                <div style="padding:5px">
                 @tabPage.Text
+                </div>
                 @if (Pages.IndexOf(tabPage) > 0 && AllowTabPageRemoval)
                 {
-                    <img src="close2.png" class="close" @onclick="async () => await OnRemoveLocal(tabPage.Id)" />
+                    <img src="close2.png" class="close" @onclick="async () => await OnRemoveLocal(tabPage.Id)"/>
                 }
             </span>
         }
