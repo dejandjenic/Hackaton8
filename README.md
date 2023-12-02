@@ -2,11 +2,11 @@
 
 ## Description
 
-The system is intended to be a chat bot which main purpose is to provide support for people with mental health issues and to prevet suicide.
+The system is intended to be a chat bot which main purpose is to provide support for people with mental health issues and to prevent suicide.
 
 The system is organized as client application developed with blazor wasm, admin application also developed with blazor wasm and api application developed with dotnet 8 minimal api.
 
-SignalR is used to provide realtime notifications wbout the system.
+SignalR is used to provide realtime notifications about the system.
 
 The system is supervised by trained professionals which at any moment can stop response generation from AI bot and manually take over.
 
