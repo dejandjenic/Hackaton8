@@ -13,16 +13,13 @@
         {
             <li class="@(message.FromUser ? "user" : "system")">
                 <div class="msg_info">
-                    <div class="msg_info_name">@(message.FromUser ? "You" : "Assistant")
-
+                    <div class="msg_info_name">
+                        @(message.FromUser ? "You" : "Assistant")
                     </div>
-             
                     <div class="msg_info_name">
                         @message.Date.ToLocalTime().ToString("dd MMM hh:mm")
-
                     </div>
                 </div>
-
                 <div class="msg_text">
                     @message.Text
                 </div>
