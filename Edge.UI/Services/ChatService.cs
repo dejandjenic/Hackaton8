@@ -7,9 +7,9 @@ public class ChatService(ConnectionService connectionService)
         await connectionService.Connect();
     }
 
-    public async Task RegisterGptHandler(Action<string> handler)
+    public async Task<IDisposable> RegisterGptHandler(Action<string> handler)
     {
-        connectionService.Bind("Respond", handler);
+        return connectionService.Bind("Respond", handler);
     }
 
     public async Task SendMessage(string message)

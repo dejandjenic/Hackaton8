@@ -5,6 +5,7 @@
     justify-content: space-between;
     position: sticky;
     margin-top: 10px;
+    height: 18%;
 }
 
 .text_question {
@@ -131,6 +132,7 @@
 .chat_detail {
     margin-top: 15px;
     margin-bottom: 15px;
+    height: 75vh;
 }
 
 .ai_button {
@@ -139,6 +141,7 @@
     justify-content: flex-end;
     position: sticky;
     margin-bottom: 10px;
+    height: 18%;
 }
 
     .ai_button .send_button {
@@ -152,7 +155,7 @@
 
 .chat_messages {
     display: flex;
-    height: 59vh;
+    height: 64%;
     overflow-y: auto;
     padding-right: 12px;
     padding-top: 20px;
