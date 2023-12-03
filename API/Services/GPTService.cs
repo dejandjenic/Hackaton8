@@ -194,30 +194,35 @@ public class GPTService : IGPTService
 
     public async Task SummarizeAsync(string userId, string conversationText)
     {
-        var _summarizePrompt = @" Summarize this prompt in one or two words. Do not use any punctuation." + Environment.NewLine;
-        ChatMessage systemMessage = new(ChatRole.System, _summarizePrompt);
-        ChatMessage userMessage = new(ChatRole.User, conversationText);
-
-        ChatCompletionsOptions options = new()
+        try
         {
-            Messages = {
-                systemMessage,
-                userMessage
-            },
-            MaxTokens = 200,
-            Temperature = 0.0f,
-            NucleusSamplingFactor = 1.0f,
-            FrequencyPenalty = 0,
-            PresencePenalty = 0
-        };
+            var _summarizePrompt = @" Summarize this prompt in one or two words. Do not use any punctuation." +
+                                   Environment.NewLine;
+            ChatMessage systemMessage = new(ChatRole.System, _summarizePrompt);
+            ChatMessage userMessage = new(ChatRole.User, conversationText);
 
-        Response<ChatCompletions> completionsResponse = await aoai.GetChatCompletionsAsync(aoaiModel, options);
+            ChatCompletionsOptions options = new()
+            {
+                Messages =
+                {
+                    systemMessage,
+                    userMessage
+                },
+                MaxTokens = 200,
+                Temperature = 0.0f,
+                NucleusSamplingFactor = 1.0f,
+                FrequencyPenalty = 0,
+                PresencePenalty = 0
+            };
 
-        ChatCompletions completions = completionsResponse.Value;
+            Response<ChatCompletions> completionsResponse = await aoai.GetChatCompletionsAsync(aoaiModel, options);
 
-        string completionText = completions.Choices[0].Message.Content;
+            ChatCompletions completions = completionsResponse.Value;
 
-        await cosmosDbService.UpdateUserChatName(userId, completionText);
+            string completionText = completions.Choices[0].Message.Content;
+
+            await cosmosDbService.UpdateUserChatName(userId, completionText);
+        }catch{}
     }
 
     private async Task<bool> SummarizeAfterFiveItems(string userId)
