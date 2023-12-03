@@ -63,4 +63,4 @@ Once commit is made to github repository , github actions is configured to build
 
 ## Demo
 
-<video src='https://github.com/dejandjenic/Hackaton8/blob/main/demo.mp4' width=180></video>
+https://github.com/dejandjenic/Hackaton8/blob/main/demo.mp4
