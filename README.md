@@ -60,3 +60,7 @@ Once commit is made to github repository , github actions is configured to build
 ![CI/CD](./deployment.png)
 
 
+
+## Demo
+
+<video src='demo.mp4' width=180/>
